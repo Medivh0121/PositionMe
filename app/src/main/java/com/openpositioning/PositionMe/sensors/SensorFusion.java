@@ -573,6 +573,11 @@ public class SensorFusion implements SensorEventListener, Observer {
         return sensorInfoList;
     }
 
+    public float[] getCurrentPdrCoordinates() {
+        return this.pdrProcessing.getPDRMovement();
+    }
+
+
     /**
      * Registers the caller observer to receive updates from the server instance.
      * Necessary when classes want to act on a trajectory being successfully or unsuccessfully send

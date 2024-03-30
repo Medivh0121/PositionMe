@@ -4,13 +4,20 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.util.Log;
+import android.util.Pair;
 
 import androidx.preference.PreferenceManager;
 
+import com.google.gson.Gson;
 import com.openpositioning.PositionMe.fragments.FilesFragment;
+import com.openpositioning.PositionMe.sensors.LocationResponse;
 import com.openpositioning.PositionMe.sensors.Observable;
 import com.openpositioning.PositionMe.sensors.Observer;
 import com.google.protobuf.util.JsonFormat;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -22,13 +29,17 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipInputStream;
 
 import okhttp3.Call;
+import okhttp3.Callback;
 import okhttp3.Headers;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
+import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
@@ -93,6 +104,7 @@ public class ServerCommunications implements Observable {
         this.observers = new ArrayList<>();
     }
 
+
     /**
      * Outgoing communication request with a {@link Traj trajectory} object. The recorded
      * trajectory is passed to the method. It is processed into the right format for sending
@@ -106,12 +118,12 @@ public class ServerCommunications implements Observable {
         byte[] binaryTrajectory = trajectory.toByteArray();
 
         // Get the directory path for storing the file with the trajectory
-        java.io.File path = context.getFilesDir();
+        File path = context.getFilesDir();
 
         // Format the file name according to date
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yy-HH-mm-ss");
         Date date = new Date();
-        java.io.File file = new File(path, "trajectory_" + dateFormat.format(date) +  ".txt");
+        File file = new File(path, "trajectory_" + dateFormat.format(date) +  ".txt");
 
         try {
             // Write the binary data to the file
@@ -135,19 +147,19 @@ public class ServerCommunications implements Observable {
             // Instantiate client for HTTP requests
             OkHttpClient client = new OkHttpClient();
 
-            // Creaet a equest body with a file to upload in multipart/form-data format
+            // Create a request body with a file to upload in multipart/form-data format
             RequestBody requestBody = new MultipartBody.Builder().setType(MultipartBody.FORM)
                     .addFormDataPart("file", file.getName(),
                             RequestBody.create(MediaType.parse("text/plain"), file))
                     .build();
 
             // Create a POST request with the required headers
-            okhttp3.Request request = new okhttp3.Request.Builder().url(uploadURL).post(requestBody)
+            Request request = new Request.Builder().url(uploadURL).post(requestBody)
                     .addHeader("accept", PROTOCOL_ACCEPT_TYPE)
                     .addHeader("Content-Type", PROTOCOL_CONTENT_TYPE).build();
 
             // Enqueue the request to be executed asynchronously and handle the response
-            client.newCall(request).enqueue(new okhttp3.Callback() {
+            client.newCall(request).enqueue(new Callback() {
 
                 // Handle failure to get response from the server
                 @Override public void onFailure(Call call, IOException e) {
@@ -214,12 +226,12 @@ public class ServerCommunications implements Observable {
                 .build();
 
         // Create a POST request with the required headers
-        okhttp3.Request request = new okhttp3.Request.Builder().url(uploadURL).post(requestBody)
+        Request request = new Request.Builder().url(uploadURL).post(requestBody)
                 .addHeader("accept", PROTOCOL_ACCEPT_TYPE)
                 .addHeader("Content-Type", PROTOCOL_CONTENT_TYPE).build();
 
         // Enqueue the request to be executed asynchronously and handle the response
-        client.newCall(request).enqueue(new okhttp3.Callback() {
+        client.newCall(request).enqueue(new Callback() {
             @Override public void onFailure(Call call, IOException e) {
                 // Print error message, set success to false and notify observers
                 e.printStackTrace();
@@ -270,14 +282,14 @@ public class ServerCommunications implements Observable {
         OkHttpClient client = new OkHttpClient();
 
         // Create GET request with required header
-        okhttp3.Request request = new okhttp3.Request.Builder()
+        Request request = new Request.Builder()
                 .url(downloadURL)
                 .addHeader("accept", PROTOCOL_ACCEPT_TYPE)
                 .get()
                 .build();
 
         // Enqueue the GET request for asynchronous execution
-        client.newCall(request).enqueue(new okhttp3.Callback() {
+        client.newCall(request).enqueue(new Callback() {
             @Override public void onFailure(Call call, IOException e) {
                 e.printStackTrace();
             }
@@ -357,14 +369,14 @@ public class ServerCommunications implements Observable {
         OkHttpClient client = new OkHttpClient();
 
         // Create GET info request with appropriate URL and header
-        okhttp3.Request request = new okhttp3.Request.Builder()
+        Request request = new Request.Builder()
                 .url(infoRequestURL)
                 .addHeader("accept", PROTOCOL_ACCEPT_TYPE)
                 .get()
                 .build();
 
         // Enqueue the GET request for asynchronous execution
-        client.newCall(request).enqueue(new okhttp3.Callback() {
+        client.newCall(request).enqueue(new Callback() {
             @Override public void onFailure(Call call, IOException e) {
                 e.printStackTrace();
             }
@@ -436,4 +448,66 @@ public class ServerCommunications implements Observable {
             }
         }
     }
+
+
+    public LocationResponse sendWifiFingerprintToServer(String jsonWifiFingerprint) throws IOException {
+        Log.d("ServerCommunications", "JSON being sent: " + jsonWifiFingerprint);
+
+        // Adjusted OkHttpClient with timeout settings
+        OkHttpClient client = new OkHttpClient.Builder()
+                .readTimeout(30, TimeUnit.SECONDS) // Increase read timeout
+                .connectTimeout(30, TimeUnit.SECONDS) // Increase connection timeout
+                .build();
+        // Define the URL of the API
+        String apiUrl = "https://openpositioning.org/api/position/coarse";
+
+        // Create a MediaType to specify the type of the request body
+        MediaType JSON = MediaType.get("application/json; charset=utf-8");
+
+        // Create the request body with the JSON string
+        RequestBody body = RequestBody.create(jsonWifiFingerprint, JSON);
+
+        // Build the HTTP request
+        Request request = new Request.Builder()
+                .url(apiUrl)
+                .post(body)
+                .addHeader("Accept", "application/json")
+                .addHeader("Content-Type", "application/json")
+                .build();
+
+        // Execute the request synchronously
+        try (Response response = client.newCall(request).execute()) {
+            // Parse the response based on the status code
+            if (response.isSuccessful()) {
+                // Parse the successful response to extract latitude and longitude
+                String responseData = Objects.requireNonNull(response.body()).string();
+                // Log the response data
+                Log.d("ServerCommunications", "Response received: " + responseData);
+
+                JSONObject jsonObj = new JSONObject(responseData);
+                double latitude = jsonObj.optDouble("latitude", Double.NaN); // Default to NaN if not present
+                double longitude = jsonObj.optDouble("longitude", Double.NaN);
+                String floor = jsonObj.optString("floor", null); // Default to null if not present
+                return new LocationResponse(latitude, longitude, floor);
+            } else if (response.code() == 422) {
+                // Handle the validation error
+                String responseBody = response.body().string();
+                Log.e("Validation Error", responseBody);
+                // Additional error handling goes here
+                throw new IOException("Validation error with body: " + responseBody);
+            } else {
+                // Handle other types of errors
+                Log.e("Response Code", response.code() + " " + response.body().string());
+                throw new IOException("Unexpected response code: " + response.code());
+            }
+        } catch (JSONException e) {
+            // Log JSON parsing error or handle itappropriately
+            Log.e("ServerCommunications", "JSON parsing error", e);
+            throw new IOException("JSON parsing error", e);
+            } catch (IOException e) {
+            // Log network or other IO errors and rethrow them
+            Log.e("ServerCommunications", "Network or IO error", e);
+            throw e;
+            }
+        }
 }
