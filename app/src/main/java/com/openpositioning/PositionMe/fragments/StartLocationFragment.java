@@ -821,16 +821,6 @@ public class StartLocationFragment extends Fragment {
                             .zIndex(1000)); // Ensure it's drawn above other map elements
                 }
 
-
-
-                // Initialize polyline for PDR path if needed
-//                PolylineOptions pdrPolylineOptions = new PolylineOptions()
-//                        .width(10) // Width of the polyline
-//                        .color(Color.BLUE) // Color of the polyline
-//                        .geodesic(true); // Drawing polyline in the most direct path
-//
-//                pdrPathPolyline = mMap.addPolyline(pdrPolylineOptions);
-
             }
         });
         return rootView;
@@ -1003,7 +993,7 @@ public class StartLocationFragment extends Fragment {
                     }
                 });
 
-//                fetchLocationAndAddMarker();
+                fetchLocationAndAddMarker();
 
 
             }

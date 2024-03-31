@@ -459,7 +459,7 @@ public class ServerCommunications implements Observable {
                 .connectTimeout(30, TimeUnit.SECONDS) // Increase connection timeout
                 .build();
         // Define the URL of the API
-        String apiUrl = "https://openpositioning.org/api/position/coarse";
+        String apiUrl = "https://openpositioning.org/api/position/fine";
 
         // Create a MediaType to specify the type of the request body
         MediaType JSON = MediaType.get("application/json; charset=utf-8");
@@ -477,6 +477,7 @@ public class ServerCommunications implements Observable {
 
         // Execute the request synchronously
         try (Response response = client.newCall(request).execute()) {
+
             // Parse the response based on the status code
             if (response.isSuccessful()) {
                 // Parse the successful response to extract latitude and longitude
