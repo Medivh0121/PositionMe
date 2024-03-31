@@ -717,7 +717,6 @@ public class StartLocationFragment extends Fragment {
                 mMap.getUiSettings().setRotateGesturesEnabled(true);
                 mMap.getUiSettings().setScrollGesturesEnabled(true);
                 mMap.setMyLocationEnabled(true); // Show the current location on the map
-                mMap.getUiSettings().setMyLocationButtonEnabled(true); // Show the "My Location" button
 
 
                 // Draw Polyline for Each Building
@@ -751,39 +750,6 @@ public class StartLocationFragment extends Fragment {
                 }
 
 
-//                The Maker function is removed
-//                // Add a marker in current GPS location and move the camera
-//                position = new LatLng(startPosition[0], startPosition[1]);
-//                currentLocationMarker = mMap.addMarker(new MarkerOptions().position(position).title("Start Position").draggable(true));
-//                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(position, zoom ));
-//
-//                //Drag listener for the marker to execute when the markers location is changed
-//                mMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener()
-//                {
-//                    /**
-//                     * {@inheritDoc}
-//                     */
-//                    @Override
-//                    public void onMarkerDragStart(Marker marker){}
-//
-//                    /**
-//                     * {@inheritDoc}
-//                     * Updates the start position of the user.
-//                     */
-//                    @Override
-//                    public void onMarkerDragEnd(Marker marker)
-//                    {
-//                        startPosition[0] = (float) marker.getPosition().latitude;
-//                        startPosition[1] = (float) marker.getPosition().longitude;
-//                    }
-//
-//                    /**
-//                     * {@inheritDoc}
-//                     */
-//                    @Override
-//                    public void onMarkerDrag(Marker marker){}
-//                });
-
                 // Instead of adding a marker and setting a drag listener, listen for location updates to center the map
                 fusedLocationClient.getLastLocation().addOnSuccessListener(requireActivity(), location -> {
                     if (location != null) {
@@ -794,7 +760,7 @@ public class StartLocationFragment extends Fragment {
                 });
 
 
-                //Draw polyline
+                //Draw GPS
                 if (path == null) {
                     path = mMap.addPolyline(new PolylineOptions()
                             .width(10)
@@ -934,17 +900,41 @@ public class StartLocationFragment extends Fragment {
         mySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+
+                // Hide all paths initially
+                if (path != null) {
+                    path.setVisible(false);
+                }
+                if (pdrpath != null) {
+                    pdrpath.setVisible(false);
+                }
+                if (fusionPath != null) {
+                    fusionPath.setVisible(false);
+                }
+
                 switch (position) {
                     case 0:
+                        fusionPath.setVisible(true);
+                        pdrpath.setVisible(true);
+                        path.setVisible(true);
                         Log.d("TEST1", "Position0");
                         break;
                     case 1:
+                        if (path != null) {
+                            path.setVisible(true);
+                        }
                         Log.d("TEST1", "Position1");
                         break;
                     case 2:
+                        if (pdrpath != null) {
+                            pdrpath.setVisible(true);
+                        }
                         Log.d("TEST1", "Position2");
                         break;
                     case 3:
+                        if (fusionPath != null) {
+                            fusionPath.setVisible(true);
+                        }
                         Log.d("TEST1", "Position3");
                         break;
                 }
