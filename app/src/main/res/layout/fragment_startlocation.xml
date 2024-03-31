@@ -23,39 +23,6 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <androidx.cardview.widget.CardView
-                android:id="@+id/cardView2"
-                android:layout_width="match_parent"
-                android:layout_height="40sp"
-                android:layout_marginStart="8dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginEnd="8dp"
-                app:cardBackgroundColor="@color/pastelBlue"
-                app:cardCornerRadius="10dp"
-                app:cardElevation="8dp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.0">
-
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:layout_width="365dp"
-                    android:layout_height="wrap_content">
-
-                </androidx.constraintlayout.widget.ConstraintLayout>
-
-                <TextView
-                    android:id="@+id/locationInstructionsText"
-                    android:layout_width="395dp"
-                    android:layout_height="match_parent"
-                    android:layout_marginStart="16dp"
-                    android:text="@string/locationInstructions"
-                    android:textColor="@color/LightYellow"
-                    android:textStyle="bold" />
-            </androidx.cardview.widget.CardView>
-
-
             <Button
                 android:id="@+id/startLocationDone"
                 android:layout_width="111dp"
@@ -69,26 +36,28 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent" />
 
+
+            <!-- Spinner to change different type of route -->
+
+
+            <!-- Up Button -->
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnChangeMapType"
                 android:layout_width="38dp"
                 android:layout_height="39dp"
                 android:layout_margin="16dp"
-                app:icon="@drawable/layer_icon"
                 android:background="@drawable/button_round_outline"
-                app:iconSize="25dp"
-                app:iconPadding="0dp"
+                app:icon="@drawable/layer_icon"
                 app:iconGravity="textStart"
+                app:iconPadding="0dp"
+                app:iconSize="25dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="1.0"
+                app:layout_constraintHorizontal_bias="0.906"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.081" />
-
-
-
-            <!-- Spinner to change different type of route -->
+                app:layout_constraintVertical_bias="0.0" />
 
             <Spinner
                 android:id="@+id/spinner"
@@ -96,26 +65,24 @@
                 android:layout_height="wrap_content"
                 android:entries="@array/spinner_items"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.066"
+                app:layout_constraintEnd_toStartOf="@+id/btnChangeMapType"
+                app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.175" />
+                app:layout_constraintVertical_bias="0.043" />
 
-
-            <!-- Up Button -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonFloorUp"
                 android:layout_width="38dp"
                 android:layout_height="38dp"
                 android:layout_marginEnd="16dp"
                 android:layout_marginBottom="80dp"
-                app:icon="@drawable/upstair_icon"
-                app:iconSize="30dp"
                 android:background="@drawable/button_square_outline"
-                app:iconPadding="0dp"
-                app:iconGravity="textStart"
                 android:visibility="gone"
+                app:icon="@drawable/upstair_icon"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
+                app:iconSize="30dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -126,50 +93,17 @@
                 android:layout_width="38dp"
                 android:layout_height="38dp"
                 android:layout_marginTop="8dp"
-                app:icon="@drawable/down_stair_icon"
-                app:iconSize="30dp"
                 android:background="@drawable/button_square_outline"
-                app:iconPadding="0dp"
-                app:iconGravity="textStart"
                 android:visibility="gone"
+                app:icon="@drawable/down_stair_icon"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
+                app:iconSize="30dp"
                 app:layout_constraintEnd_toEndOf="@+id/buttonFloorUp"
                 app:layout_constraintTop_toBottomOf="@+id/buttonFloorUp" />
 
 
             <!-- Altitude CardView -->
-
-            <LinearLayout
-                android:id="@+id/linearLayoutBuildingInfo"
-                android:layout_width="221dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="32dp"
-                android:layout_marginEnd="24dp"
-                android:gravity="center_horizontal"
-                android:orientation="vertical"
-                android:padding="16dp"
-                app:layout_constraintEnd_toStartOf="@+id/btnChangeMapType"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/cardView2">
-
-                <TextView
-                    android:id="@+id/textViewBuildingName"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Building Name"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Large"
-                    android:textStyle="bold"
-                    android:visibility="gone" />
-
-                <TextView
-                    android:id="@+id/textViewFloorNumber"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="Floor Number"
-                    android:textStyle="bold"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                    android:visibility="gone" />
-            </LinearLayout>
 
             <androidx.cardview.widget.CardView
                 android:id="@+id/cardViewAltitude"
@@ -263,8 +197,9 @@
                 app:cardCornerRadius="8dp"
                 app:cardElevation="4dp"
                 app:layout_constraintBottom_toTopOf="@+id/cardViewLatitude"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent">
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent">
+
                 <TextView
                     android:id="@+id/currentYPos"
                     android:layout_width="wrap_content"
@@ -283,8 +218,9 @@
                 app:cardCornerRadius="8dp"
                 app:cardElevation="4dp"
                 app:layout_constraintBottom_toTopOf="@+id/pdrYTextView"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent">
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent">
+
                 <TextView
                     android:id="@+id/currentXPos"
                     android:layout_width="wrap_content"

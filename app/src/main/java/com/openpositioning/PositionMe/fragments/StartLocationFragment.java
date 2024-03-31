@@ -320,19 +320,6 @@ public class StartLocationFragment extends Fragment {
                     fusionPathPoint.add(newFusionPoint);
                     fusionPath.setPoints(fusionPathPoint);
 
-
-
-
-                    // Fetch PDR values and update UI.
-//                    float[] pdrValues = sensorFusion.getSensorValueMap().get(SensorTypes.PDR);
-//                    if (pdrValues != null && pdrValues.length >= 2) { // Ensure there are PDR values
-//                        String pdrXStr = String.format(Locale.getDefault(), "X: %.1f", pdrValues[0]);
-//                        String pdrYStr = String.format(Locale.getDefault(), "Y: %.1f", pdrValues[1]);
-//                        positionX.setText(pdrXStr);
-//                        positionY.setText(pdrYStr);
-//                    }
-
-
                     // Determining building presence and managing indoor map display.
                     manageIndoorMapDisplay(location);
                   }
@@ -527,14 +514,7 @@ public class StartLocationFragment extends Fragment {
      * @param floor        The floor number.
      */
     private void updateFloorDisplay(String buildingName, int floor) {
-        TextView buildingNameTextView = getView().findViewById(R.id.textViewBuildingName);
-        TextView floorNumberTextView = getView().findViewById(R.id.textViewFloorNumber);
-
-        buildingNameTextView.setText(buildingName);
-        buildingNameTextView.setVisibility(View.VISIBLE);
         String floorDisplay = formatFloorNumber(buildingName, floor);
-        floorNumberTextView.setText(floorDisplay);
-        floorNumberTextView.setVisibility(View.VISIBLE);
     }
 
     /**
@@ -620,10 +600,6 @@ public class StartLocationFragment extends Fragment {
             currentOverlay.remove(); // Remove the GroundOverlay from the map
             currentOverlay = null; // Clear the reference
         }
-        TextView buildingNameTextView = getView().findViewById(R.id.textViewBuildingName);
-        TextView floorNumberTextView = getView().findViewById(R.id.textViewFloorNumber);
-        buildingNameTextView.setVisibility(View.GONE);
-        floorNumberTextView.setVisibility(View.GONE);
 
     }
 
@@ -891,13 +867,13 @@ public class StartLocationFragment extends Fragment {
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 101;
 
     private void initializeSpinner(View view) {
-        Spinner mySpinner = view.findViewById(R.id.spinner);
+        Spinner spinner = view.findViewById(R.id.spinner);
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(getContext(),
                 R.array.spinner_items, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        mySpinner.setAdapter(adapter);
+        spinner.setAdapter(adapter);
 
-        mySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
 
@@ -947,7 +923,7 @@ public class StartLocationFragment extends Fragment {
         });
 
         // 设置默认选项为第一个
-        mySpinner.setSelection(0);
+        spinner.setSelection(0);
     }
 
 
