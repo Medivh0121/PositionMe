@@ -12,7 +12,10 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -843,6 +846,8 @@ public class StartLocationFragment extends Fragment {
         this.previousPosY = 0f;
 
 
+        initializeSpinner(view);
+
         Button btnChangeMapType = view.findViewById(R.id.btnChangeMapType);
         btnChangeMapType.setOnClickListener(new View.OnClickListener() {
             private int currentMapTypeIndex = 0;
@@ -918,6 +923,43 @@ public class StartLocationFragment extends Fragment {
     }
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 101;
+
+    private void initializeSpinner(View view) {
+        Spinner mySpinner = view.findViewById(R.id.spinner);
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(getContext(),
+                R.array.spinner_items, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        mySpinner.setAdapter(adapter);
+
+        mySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                switch (position) {
+                    case 0:
+                        Log.d("TEST1", "Position0");
+                        break;
+                    case 1:
+                        Log.d("TEST1", "Position1");
+                        break;
+                    case 2:
+                        Log.d("TEST1", "Position2");
+                        break;
+                    case 3:
+                        Log.d("TEST1", "Position3");
+                        break;
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                // Optional: Handle the case where nothing is selected
+            }
+        });
+
+        // 设置默认选项为第一个
+        mySpinner.setSelection(0);
+    }
+
 
     /**
      * Initiates location tracking by requesting location updates from the FusedLocationProviderClient.

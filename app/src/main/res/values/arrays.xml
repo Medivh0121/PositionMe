@@ -23,6 +23,14 @@
         <item>WiFi</item>
     </string-array>
 
+    <!-- Sensor Preference -->
+    <string-array name="spinner_items">
+        <item>Fusion Path</item>
+        <item>GNSS Path</item>
+        <item>PDR Path</item>
+        <item>Wifi Path</item>
+    </string-array>
+
     <string-array name="sensor_values">
         <item>gyro</item>
         <item>acc</item>
