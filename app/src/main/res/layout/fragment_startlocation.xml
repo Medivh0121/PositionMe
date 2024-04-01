@@ -42,6 +42,7 @@
 
             <!-- Up Button -->
 
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnChangeMapType"
                 android:layout_width="38dp"
@@ -49,27 +50,38 @@
                 android:layout_margin="16dp"
                 android:background="@drawable/button_round_outline"
                 app:icon="@drawable/layer_icon"
-                app:iconGravity="textStart"
-                app:iconPadding="0dp"
+                app:backgroundTint="@null"
+                app:iconTint="@null"
                 app:iconSize="25dp"
+                app:iconPadding="0dp"
+                app:iconGravity="textStart"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.906"
+                app:layout_constraintHorizontal_bias="1.0"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.0" />
+                app:layout_constraintVertical_bias="0.08" />
 
-            <Spinner
-                android:id="@+id/spinner"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:entries="@array/spinner_items"
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnChangePathType"
+                android:layout_width="38dp"
+                android:layout_height="39dp"
+                android:layout_margin="16dp"
+                android:background="@drawable/button_round_outline"
+                app:icon="@drawable/ic_path"
+                app:backgroundTint="@null"
+                app:iconTint="@null"
+                app:iconSize="25dp"
+                app:iconPadding="0dp"
+                app:iconGravity="textStart"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/btnChangeMapType"
-                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.02"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.043" />
+                app:layout_constraintVertical_bias="0.08" />
+
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonFloorUp"

@@ -12,10 +12,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.Spinner;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -43,6 +42,7 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.maps.android.PolyUtil;
 import com.openpositioning.PositionMe.FusionFilter.ParticleFilter;
 import com.openpositioning.PositionMe.R;
@@ -55,7 +55,6 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.openpositioning.PositionMe.sensors.SensorTypes;
 import com.openpositioning.PositionMe.sensors.WifiFPManager;
 
@@ -144,6 +143,12 @@ public class StartLocationFragment extends Fragment {
 
     private LatLng newPdrPoint;
     private LatLng newFusionPoint;
+
+    private BottomSheetDialog bottomPathDialog = null;
+    private View bottomPathView;
+
+    private BottomSheetDialog bottomLayerDialog = null;
+    private View bottomLayerView;
 
 
     /**
@@ -787,23 +792,8 @@ public class StartLocationFragment extends Fragment {
         this.previousPosX = 0f;
         this.previousPosY = 0f;
 
-
-        initializeSpinner(view);
-
-        Button btnChangeMapType = view.findViewById(R.id.btnChangeMapType);
-        btnChangeMapType.setOnClickListener(new View.OnClickListener() {
-            private int currentMapTypeIndex = 0;
-            private final int[] mapTypes = {GoogleMap.MAP_TYPE_NORMAL, GoogleMap.MAP_TYPE_SATELLITE, GoogleMap.MAP_TYPE_TERRAIN, GoogleMap.MAP_TYPE_HYBRID};
-
-            @Override
-            public void onClick(View v) {
-                // Cycle through the map types
-                currentMapTypeIndex = (currentMapTypeIndex + 1) % mapTypes.length;
-                if (mMap != null) {
-                    mMap.setMapType(mapTypes[currentMapTypeIndex]);
-                }
-            }
-        });
+        showMapTypeDialog(view);
+        showPathTypeDialog(view);
 
         // Add button to begin PDR recording and go to recording fragment.
         this.button = (Button) getView().findViewById(R.id.startLocationDone);
@@ -866,65 +856,216 @@ public class StartLocationFragment extends Fragment {
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 101;
 
-    private void initializeSpinner(View view) {
-        Spinner spinner = view.findViewById(R.id.spinner);
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(getContext(),
-                R.array.spinner_items, android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner.setAdapter(adapter);
+//    private void initializeSpinner(View view) {
+//        Spinner spinner = view.findViewById(R.id.spinner);
+//        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(getContext(),
+//                R.array.spinner_items, android.R.layout.simple_spinner_item);
+//        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+//        spinner.setAdapter(adapter);
+//
+//        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+//            @Override
+//            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+//
+//                // Hide all paths initially
+//                if (path != null) {
+//                    path.setVisible(false);
+//                }
+//                if (pdrpath != null) {
+//                    pdrpath.setVisible(false);
+//                }
+//                if (fusionPath != null) {
+//                    fusionPath.setVisible(false);
+//                }
+//
+//                switch (position) {
+//                    case 0:
+//                        fusionPath.setVisible(true);
+//                        pdrpath.setVisible(true);
+//                        path.setVisible(true);
+//                        Log.d("TEST1", "Position0");
+//                        break;
+//                    case 1:
+//                        if (path != null) {
+//                            path.setVisible(true);
+//                        }
+//                        Log.d("TEST1", "Position1");
+//                        break;
+//                    case 2:
+//                        if (pdrpath != null) {
+//                            pdrpath.setVisible(true);
+//                        }
+//                        Log.d("TEST1", "Position2");
+//                        break;
+//                    case 3:
+//                        if (fusionPath != null) {
+//                            fusionPath.setVisible(true);
+//                        }
+//                        Log.d("TEST1", "Position3");
+//                        break;
+//                }
+//            }
+//
+//            @Override
+//            public void onNothingSelected(AdapterView<?> parent) {
+//                // Optional: Handle the case where nothing is selected
+//            }
+//        });
+//
+//        // 设置默认选项为第一个
+//        spinner.setSelection(0);
+//    }
 
-        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+    private void showPathTypeDialog(View view) {
+        Button btnChangeMapType = view.findViewById(R.id.btnChangePathType);
+        btnChangeMapType.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+            public void onClick(View v) {
+                if (bottomPathDialog == null || !bottomPathDialog.isShowing()) {
+                    bottomPathDialog = new BottomSheetDialog(getContext());
+                    View bottomPathView = getLayoutInflater().inflate(R.layout.item_path_bottom_dialog, null);
+                    bottomPathDialog.setContentView(bottomPathView);
 
-                // Hide all paths initially
-                if (path != null) {
-                    path.setVisible(false);
-                }
-                if (pdrpath != null) {
-                    pdrpath.setVisible(false);
-                }
-                if (fusionPath != null) {
-                    fusionPath.setVisible(false);
+                    LinearLayout layoutFusion = bottomPathView.findViewById(R.id.layoutFusion);
+                    ImageView imageFusion = bottomPathView.findViewById(R.id.imageFusion);
+                    TextView textFusion = bottomPathView.findViewById(R.id.textFusion);
+                    final boolean[] isSelectedFusion = {true}; // 初始化为选中状态
+                    toggleSelection(imageFusion, textFusion, isSelectedFusion[0]);
+
+                    LinearLayout layoutWifi = bottomPathView.findViewById(R.id.layoutWifi);
+                    ImageView imageWifi = bottomPathView.findViewById(R.id.imageWifi);
+                    TextView textWifi = bottomPathView.findViewById(R.id.textWifi);
+                    final boolean[] isSelectedWifi = {false};
+
+                    LinearLayout layoutGNSS = bottomPathView.findViewById(R.id.layoutGNSS);
+                    ImageView imageGNSS = bottomPathView.findViewById(R.id.imageGNSS);
+                    TextView textGNSS = bottomPathView.findViewById(R.id.textGNSS);
+                    final boolean[] isSelectedGNSS = {false};
+
+                    LinearLayout layoutPDR = bottomPathView.findViewById(R.id.layoutPDR);
+                    ImageView imagePDR = bottomPathView.findViewById(R.id.imagePDR);
+                    TextView textPDR = bottomPathView.findViewById(R.id.textPDR);
+                    final boolean[] isSelectedPDR = {false};
+
+                    layoutFusion.setOnClickListener(view1 -> {
+                        if (!isSelectedFusion[0] || isSelectedWifi[0] || isSelectedGNSS[0] || isSelectedPDR[0]) {
+                            isSelectedFusion[0] = !isSelectedFusion[0];
+                            toggleSelection(imageFusion, textFusion, isSelectedFusion[0]);
+                        }
+                    });
+
+                    layoutWifi.setOnClickListener(view1 -> {
+                        isSelectedWifi[0] = !isSelectedWifi[0];
+                        toggleSelection(imageWifi, textWifi, isSelectedWifi[0]);
+                    });
+
+                    layoutGNSS.setOnClickListener(view1 -> {
+                        isSelectedGNSS[0] = !isSelectedGNSS[0];
+                        toggleSelection(imageGNSS, textGNSS, isSelectedGNSS[0]);
+                    });
+
+                    layoutPDR.setOnClickListener(view1 -> {
+                        isSelectedPDR[0] = !isSelectedPDR[0];
+                        toggleSelection(imagePDR, textPDR, isSelectedPDR[0]);
+                    });
                 }
 
-                switch (position) {
-                    case 0:
-                        fusionPath.setVisible(true);
-                        pdrpath.setVisible(true);
-                        path.setVisible(true);
-                        Log.d("TEST1", "Position0");
-                        break;
-                    case 1:
-                        if (path != null) {
-                            path.setVisible(true);
-                        }
-                        Log.d("TEST1", "Position1");
-                        break;
-                    case 2:
-                        if (pdrpath != null) {
-                            pdrpath.setVisible(true);
-                        }
-                        Log.d("TEST1", "Position2");
-                        break;
-                    case 3:
-                        if (fusionPath != null) {
-                            fusionPath.setVisible(true);
-                        }
-                        Log.d("TEST1", "Position3");
-                        break;
-                }
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                // Optional: Handle the case where nothing is selected
+                bottomPathDialog.show();
             }
         });
-
-        // 设置默认选项为第一个
-        spinner.setSelection(0);
     }
+
+    private void toggleSelection(ImageView imageView, TextView textView, boolean isSelected) {
+        if (isSelected) {
+            imageView.setBackgroundResource(R.drawable.textview_border);
+            textView.setTextColor(Color.parseColor("#1A73E8"));
+        } else {
+            imageView.setBackground(null);
+            textView.setTextColor(Color.BLACK);  // Use default color
+        }
+    }
+
+
+
+
+
+
+    private void showMapTypeDialog(View view) {
+        Button btnChangeMapType = view.findViewById(R.id.btnChangeMapType);
+        btnChangeMapType.setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            // 使用局部变量检查 BottomSheetDialog 是否已存在并正在显示
+            if (bottomLayerDialog == null || !bottomLayerDialog.isShowing()) {
+                bottomLayerDialog = new BottomSheetDialog(getContext());
+                bottomLayerView = getLayoutInflater().inflate(R.layout.item_layer_bottom_dialog, null);
+                bottomLayerDialog.setContentView(bottomLayerView);
+
+                LinearLayout layerDefault = bottomLayerView.findViewById(R.id.layer_default);
+                ImageView viewDefault = bottomLayerView.findViewById(R.id.layer_default_view);
+                TextView textDefault = bottomLayerView.findViewById(R.id.layer_default_text);
+
+                LinearLayout layerSatellite = bottomLayerView.findViewById(R.id.layer_satellite);
+                ImageView viewSatellite = bottomLayerView.findViewById(R.id.layer_satellite_view);
+                TextView textSatellite = bottomLayerView.findViewById(R.id.layer_satellite_text);
+
+                LinearLayout layerTerrain = bottomLayerView.findViewById(R.id.layer_terrain);
+                ImageView viewTerrain = bottomLayerView.findViewById(R.id.layer_terrain_view);
+                TextView textTerrain = bottomLayerView.findViewById(R.id.layer_terrain_text);
+
+                // Method to clear borders
+                Runnable clearBorders = () -> {
+                    viewDefault.setBackground(null);
+                    viewSatellite.setBackground(null);
+                    viewTerrain.setBackground(null);
+
+                    // 重置所有TextView颜色
+                    textDefault.setTextColor(Color.parseColor("#3C4043"));
+                    textSatellite.setTextColor(Color.parseColor("#3C4043"));
+                    textTerrain.setTextColor(Color.parseColor("#3C4043"));
+                };
+
+                layerDefault.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+                        clearBorders.run();
+                        viewDefault.setBackgroundResource(R.drawable.textview_border);
+                        textDefault.setTextColor((Color.parseColor("#1A73E8")));
+
+                    }
+                });
+
+                layerSatellite.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
+                        clearBorders.run();
+                        viewSatellite.setBackgroundResource(R.drawable.textview_border);
+                        textSatellite.setTextColor((Color.parseColor("#1A73E8")));
+                    }
+                });
+
+                layerTerrain.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
+                        clearBorders.run();
+                        viewTerrain.setBackgroundResource(R.drawable.textview_border);
+                        textTerrain.setTextColor((Color.parseColor("#1A73E8")));
+                    }
+                });}
+
+            if (bottomPathDialog != null) {
+                bottomPathDialog.show();
+            }
+
+                bottomLayerDialog.show();
+            }
+        });
+    }
+
+
 
 
     /**
