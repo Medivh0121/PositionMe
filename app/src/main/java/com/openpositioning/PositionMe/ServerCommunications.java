@@ -486,8 +486,8 @@ public class ServerCommunications implements Observable {
                 Log.d("ServerCommunications", "Response received: " + responseData);
 
                 JSONObject jsonObj = new JSONObject(responseData);
-                double latitude = jsonObj.optDouble("latitude", Double.NaN); // Default to NaN if not present
-                double longitude = jsonObj.optDouble("longitude", Double.NaN);
+                double latitude = jsonObj.optDouble("lat", Double.NaN); // Use "lat" instead of "latitude"
+                double longitude = jsonObj.optDouble("lon", Double.NaN); // Use "lon" instead of "longitude"
                 String floor = jsonObj.optString("floor", null); // Default to null if not present
                 return new LocationResponse(latitude, longitude, floor);
             } else if (response.code() == 422) {

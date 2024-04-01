@@ -20,7 +20,29 @@ public class ParticleFilter {
         }
     }
 
-    public LatLng particleFilter(LatLng gnssCoord, LatLng pdrCoord) {
+//    public LatLng particleFilter(LatLng gnssCoord, LatLng pdrCoord) {
+//        // Apply the motion model
+//        for (Particle particle : particles) {
+//            particle.position = new LatLng(
+//                    particle.position.latitude + (random.nextDouble() - 0.5) * 0.00001, // Simulate slight random movement
+//                    particle.position.longitude + (random.nextDouble() - 0.5) * 0.00001);
+//        }
+//
+//        // Update weights based on GNSS and PDR measurements
+//        if (gnssCoord != null) {
+//            updateWeights(gnssCoord, sensorNoise);
+//        }
+//        if (pdrCoord != null) {
+//            updateWeights(pdrCoord, sensorNoise);
+//        }
+//
+//        normalizeWeights();
+//        resample();
+//
+//        return estimatePosition();
+//    }
+
+    public LatLng particleFilter(LatLng wifiCoord, LatLng gnssCoord, LatLng pdrCoord) {
         // Apply the motion model
         for (Particle particle : particles) {
             particle.position = new LatLng(
@@ -28,6 +50,9 @@ public class ParticleFilter {
                     particle.position.longitude + (random.nextDouble() - 0.5) * 0.00001);
         }
 
+        if (wifiCoord != null) {
+            updateWeights(wifiCoord, sensorNoise);
+        }
         // Update weights based on GNSS and PDR measurements
         if (gnssCoord != null) {
             updateWeights(gnssCoord, sensorNoise);
@@ -62,6 +87,7 @@ public class ParticleFilter {
     }
 
     private void resample() {
+
         List<Particle> newParticles = new ArrayList<>();
         double[] cumulativeSum = new double[particles.size()];
         cumulativeSum[0] = particles.get(0).weight;
@@ -79,7 +105,6 @@ public class ParticleFilter {
                 }
             }
         }
-
         particles = newParticles;
     }
 

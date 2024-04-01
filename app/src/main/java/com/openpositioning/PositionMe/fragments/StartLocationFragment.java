@@ -2,12 +2,16 @@ package com.openpositioning.PositionMe.fragments;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 //import android.location.LocationRequest;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.StrictMode;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,9 +23,11 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavDirections;
 import androidx.navigation.Navigation;
@@ -94,7 +100,7 @@ public class StartLocationFragment extends Fragment {
     // Map Components
     private GoogleMap mMap; // Instance of GoogleMap.
     private Marker currentLocationMarker; // Previously used to display the current location on the map. Disabled in the current version.
-    private Polyline path; // Polyline to draw the path on the map.
+    private Polyline gnssPath; // Polyline to draw the path on the map.
     private GroundOverlay currentOverlay; // Overlay for displaying indoor maps.
     private List<LatLng> pathPoints = new ArrayList<>(); // Points to construct the path polyline.
     private float zoom = 19f; // Zoom level for Google Maps.
@@ -135,15 +141,26 @@ public class StartLocationFragment extends Fragment {
 
     private List<LatLng> pdrPathPoint = new ArrayList<>(); // Points to construct the path polyline.
     private List<LatLng> fusionPathPoint = new ArrayList<>();
+    private List<LatLng> wifiPathPoint = new ArrayList<>();
+
 
     private Polyline fusionPath;
+    private Polyline pdrPath; // Polyline to draw the path on the map.
+    private Polyline wifiPath; // Polyline to draw the path on the map.
 
-    private Polyline pdrpath; // Polyline to draw the path on the map.
+
+
     private WifiFPManager wifiFPManager;
     private ServerCommunications serverCommunications;
 
     private LatLng newPdrPoint;
     private LatLng newFusionPoint;
+    private LatLng newWifiPoint;
+
+
+    private Marker pdrMarker, fusedMarker, gnssMarker, wifiMarker; // Class member to keep track of the marker
+    private float dircInDegrees;
+
 
 
     /**
@@ -187,10 +204,15 @@ public class StartLocationFragment extends Fragment {
         Context context = getActivity();
         serverCommunications = new ServerCommunications(context);
 
-        ParticleFilter particleFilter = new ParticleFilter(new LatLng(55.944405, -3.186835));
+        startPosition = sensorFusion.getGNSSLatitude(false);
+        ParticleFilter particleFilter = new ParticleFilter(new LatLng(startPosition[0], startPosition[1]));
 
 
         this.refreshDataHandler = new Handler();
+
+        StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
+
+        StrictMode.setVmPolicy(builder.build());
 
         // Add the library building with all details encapsulated in the constructor.
         buildings.add(new Building(
@@ -308,29 +330,40 @@ public class StartLocationFragment extends Fragment {
 
                     Log.d("GNSSUpdate", String.format(Locale.getDefault(), "New Lat: %.6f, New Lng: %.6f", location.getLatitude(), location.getLongitude()));
 
+                    fetchLocationAndAddMarker();
+
 
                     // Adding the current location to the path and updating the map.
-                    LatLng newPoint = new LatLng(location.getLatitude(), location.getLongitude());
-                    pathPoints.add(newPoint);
-                    path.setPoints(pathPoints);
+                    LatLng newGPSPoint = new LatLng(location.getLatitude(), location.getLongitude());
+                    pathPoints.add(newGPSPoint);
+                    gnssPath.setPoints(pathPoints);
 
-                    LatLng estimateCoord = particleFilter.particleFilter(newPoint, newPdrPoint);
-                    Log.d("FusionCoord", String.format(Locale.getDefault(), "New Lat: %.6f, New Lng: %.6f", estimateCoord.latitude, estimateCoord.longitude));
+
+
+                    if (gnssMarker == null) {
+                        gnssMarker = mMap.addMarker(new MarkerOptions()
+                                .position(newGPSPoint)
+                                .icon(BitmapDescriptorFactory.fromBitmap(getBitmapFromVector(getContext(), R.drawable.ic_baseline_navigation_red)))
+                                .anchor(0.5f, 0.5f));
+                    } else {
+                        gnssMarker.setPosition(newGPSPoint);
+                    }
+
+
+
+                    LatLng estimateCoord = particleFilter.particleFilter(newWifiPoint, newGPSPoint, newPdrPoint);
                     newFusionPoint = estimateCoord;
                     fusionPathPoint.add(newFusionPoint);
                     fusionPath.setPoints(fusionPathPoint);
 
-
-
-
-                    // Fetch PDR values and update UI.
-//                    float[] pdrValues = sensorFusion.getSensorValueMap().get(SensorTypes.PDR);
-//                    if (pdrValues != null && pdrValues.length >= 2) { // Ensure there are PDR values
-//                        String pdrXStr = String.format(Locale.getDefault(), "X: %.1f", pdrValues[0]);
-//                        String pdrYStr = String.format(Locale.getDefault(), "Y: %.1f", pdrValues[1]);
-//                        positionX.setText(pdrXStr);
-//                        positionY.setText(pdrYStr);
-//                    }
+                    if (fusedMarker == null) {
+                        fusedMarker = mMap.addMarker(new MarkerOptions()
+                                .position(newFusionPoint)
+                                .icon(BitmapDescriptorFactory.fromBitmap(getBitmapFromVector(getContext(), R.drawable.ic_baseline_navigation_green)))
+                                .anchor(0.5f, 0.5f));
+                    } else {
+                        fusedMarker.setPosition(newFusionPoint);
+                    }
 
 
                     // Determining building presence and managing indoor map display.
@@ -687,7 +720,7 @@ public class StartLocationFragment extends Fragment {
 
 
         //Obtain the start position from the GPS data from the SensorFusion class
-        startPosition = sensorFusion.getGNSSLatitude(false);
+//        startPosition = sensorFusion.getGNSSLatitude(false);
         //If not location found zoom the map out
         if (startPosition[0] == 0 && startPosition[1] == 0) {
             zoom = 1f;
@@ -716,7 +749,7 @@ public class StartLocationFragment extends Fragment {
                 mMap.getUiSettings().setTiltGesturesEnabled(true);
                 mMap.getUiSettings().setRotateGesturesEnabled(true);
                 mMap.getUiSettings().setScrollGesturesEnabled(true);
-                mMap.setMyLocationEnabled(true); // Show the current location on the map
+//                mMap.setMyLocationEnabled(true); // Show the current location on the map
 
 
                 // Draw Polyline for Each Building
@@ -761,8 +794,8 @@ public class StartLocationFragment extends Fragment {
 
 
                 //Draw GPS
-                if (path == null) {
-                    path = mMap.addPolyline(new PolylineOptions()
+                if (gnssPath == null) {
+                    gnssPath = mMap.addPolyline(new PolylineOptions()
                             .width(10)
                             .color(Color.RED)
                             .addAll(pathPoints) // Add existing points, if any
@@ -771,14 +804,16 @@ public class StartLocationFragment extends Fragment {
                 }
 
                 //Draw pdr
-                if (pdrpath == null) {
-                    pdrpath = mMap.addPolyline(new PolylineOptions()
+                if (pdrPath == null) {
+                    pdrPath = mMap.addPolyline(new PolylineOptions()
                             .width(10)
                             .color(Color.BLUE)
                             .addAll(pdrPathPoint) // Add existing points, if any
                             .visible(true) // Ensure it's visible
                             .zIndex(1000)); // Ensure it's drawn above other map elements
                 }
+
+
 
                 //Draw fusionpath
                 if (fusionPath == null) {
@@ -789,6 +824,17 @@ public class StartLocationFragment extends Fragment {
                             .visible(true) // Ensure it's visible
                             .zIndex(1000)); // Ensure it's drawn above other map elements
                 }
+
+                //Draw wifipath
+                if (wifiPath == null) {
+                    wifiPath = mMap.addPolyline(new PolylineOptions()
+                            .width(10)
+                            .color(Color.YELLOW)
+                            .addAll(wifiPathPoint) // Add existing points, if any
+                            .visible(true) // Ensure it's visible
+                            .zIndex(1000)); // Ensure it's drawn above other map elements
+                }
+
 
             }
         });
@@ -902,11 +948,11 @@ public class StartLocationFragment extends Fragment {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
 
                 // Hide all paths initially
-                if (path != null) {
-                    path.setVisible(false);
+                if (gnssPath != null) {
+                    gnssPath.setVisible(false);
                 }
-                if (pdrpath != null) {
-                    pdrpath.setVisible(false);
+                if (pdrPath != null) {
+                    pdrPath.setVisible(false);
                 }
                 if (fusionPath != null) {
                     fusionPath.setVisible(false);
@@ -914,28 +960,31 @@ public class StartLocationFragment extends Fragment {
 
                 switch (position) {
                     case 0:
-                        fusionPath.setVisible(true);
-                        pdrpath.setVisible(true);
-                        path.setVisible(true);
-                        Log.d("TEST1", "Position0");
-                        break;
-                    case 1:
-                        if (path != null) {
-                            path.setVisible(true);
-                        }
-                        Log.d("TEST1", "Position1");
-                        break;
-                    case 2:
-                        if (pdrpath != null) {
-                            pdrpath.setVisible(true);
-                        }
-                        Log.d("TEST1", "Position2");
-                        break;
-                    case 3:
                         if (fusionPath != null) {
                             fusionPath.setVisible(true);
                         }
-                        Log.d("TEST1", "Position3");
+                        Log.d("TEST1", "Fusion");
+                        break;
+                    case 1:
+                        if (gnssPath != null) {
+                            gnssPath.setVisible(true);
+                        }
+                        Log.d("TEST1", "GNSS");
+                        break;
+                    case 2:
+                        if (pdrPath != null) {
+                            pdrPath.setVisible(true);
+                        }
+                        Log.d("TEST1", "PDR");
+                        break;
+                    case 3:
+                        if (fusionPath != null) {
+                            pdrPath.setVisible(true);
+                            gnssPath.setVisible(true);
+                            fusionPath.setVisible(true);
+                            wifiPath.setVisible(true);
+                        }
+                        Log.d("TEST1", "WIFI");
                         break;
                 }
             }
@@ -948,6 +997,68 @@ public class StartLocationFragment extends Fragment {
 
         // 设置默认选项为第一个
         mySpinner.setSelection(0);
+    }
+
+//    private void initializeSpinner(View view) {
+//        Spinner mySpinner = view.findViewById(R.id.spinner);
+//        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(getContext(),
+//                R.array.spinner_items, android.R.layout.simple_spinner_item);
+//        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+//        mySpinner.setAdapter(adapter);
+//
+//        mySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+//            @Override
+//            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+//                // Hide all paths and markers initially
+//                setPathVisibility(gnssPath, false);
+//                setPathVisibility(pdrPath, false);
+//                setPathVisibility(fusionPath, false);
+//                setMarkerVisibility(gnssMarker, false);
+//                setMarkerVisibility(pdrMarker, false);
+//                setMarkerVisibility(fusedMarker, false);
+//
+//                // Display selected path and marker
+//                switch (position) {
+//                    case 0: // Fusion Path selected
+//                        setPathVisibility(fusionPath, true);
+//                        setMarkerVisibility(fusedMarker, true);
+//                        break;
+//                    case 1: // GNSS Path selected
+//                        setPathVisibility(gnssPath, true);
+//                        setMarkerVisibility(gnssMarker, true);
+//                        break;
+//                    case 2: // PDR Path selected
+//                        setPathVisibility(pdrPath, true);
+//                        setMarkerVisibility(pdrMarker, true);
+//                        break;
+//                    default:
+//                        Log.d("SpinnerSelection", "No path selected or unrecognized selection");
+//                        break;
+//                }
+//            }
+//
+//            @Override
+//            public void onNothingSelected(AdapterView<?> parent) {
+//                // Optional: Handle the case where nothing is selected
+//            }
+//        });
+//
+//        // Set default selection to the first item (Fusion Path)
+//        mySpinner.setSelection(0);
+//    }
+
+    // Helper method to safely change path visibility
+    private void setPathVisibility(Polyline path, boolean isVisible) {
+        if (path != null) {
+            path.setVisible(isVisible);
+        }
+    }
+
+    // Helper method to safely change marker visibility
+    private void setMarkerVisibility(Marker marker, boolean isVisible) {
+        if (marker != null) {
+            marker.setVisible(isVisible);
+        }
     }
 
 
@@ -990,6 +1101,9 @@ public class StartLocationFragment extends Fragment {
         public void run() {
             // Fetch PDR values and update UI
             pdrValues = sensorFusion.getSensorValueMap().get(SensorTypes.PDR);
+            float orientationRadians = sensorFusion.passOrientation();
+            dircInDegrees = (float) Math.toDegrees(orientationRadians);
+
             if (pdrValues != null && pdrValues.length >= 2) {
                 // Constants for conversion
 
@@ -1014,7 +1128,17 @@ public class StartLocationFragment extends Fragment {
                         // Add new point to the polyline on the map
                         newPdrPoint = new LatLng(newLatitude, newLongitude);
                         pdrPathPoint.add(newPdrPoint);
-                        pdrpath.setPoints(pdrPathPoint);
+                        pdrPath.setPoints(pdrPathPoint);
+
+                        if (pdrMarker == null) {
+                            pdrMarker = mMap.addMarker(new MarkerOptions()
+                                    .position(newPdrPoint)
+                                    .rotation(dircInDegrees)
+                                    .icon(BitmapDescriptorFactory.fromBitmap(getBitmapFromVector(getContext(), R.drawable.ic_baseline_navigation_blue)))
+                                    .anchor(0.5f, 0.5f));
+                        } else {
+                            pdrMarker.setPosition(newPdrPoint);
+                        }
 
                         // Optionally update UI elements with the new position
                         String latStr = String.format(Locale.getDefault(), "Lat: %.6f", newLatitude);
@@ -1024,16 +1148,21 @@ public class StartLocationFragment extends Fragment {
 
                     }
                 });
-
-                fetchLocationAndAddMarker();
-
-
             }
             // Schedule the next update
             refreshDataHandler.postDelayed(this, 500); // Adjust the delay as needed
         }
     };
 
+    private Bitmap getBitmapFromVector(Context context, @DrawableRes int vectorResId) {
+        Drawable vectorDrawable = ContextCompat.getDrawable(context, vectorResId);
+        Bitmap bitmap = Bitmap.createBitmap(vectorDrawable.getIntrinsicWidth(),
+                vectorDrawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        vectorDrawable.setBounds(0, 0, vectorDrawable.getIntrinsicWidth(), vectorDrawable.getIntrinsicHeight());
+        vectorDrawable.draw(canvas);
+        return bitmap;
+    }
 
     private void fetchLocationAndAddMarker() {
 
@@ -1043,20 +1172,23 @@ public class StartLocationFragment extends Fragment {
 //                Log.d("wifiFingerPrint", String.format(Locale.getDefault(), wifiFingerprintJson));
 
                 LocationResponse locationResponse = serverCommunications.sendWifiFingerprintToServer(wifiFingerprintJson);
+                Log.d("WifiLocation", String.format(Locale.getDefault(), "New Lat: %.6f, New Lng: %.6f", locationResponse.getLatitude(), locationResponse.getLongitude()));
 
                 getActivity().runOnUiThread(() -> {
-                    if (locationResponse != null && mMap != null && !Double.isNaN(locationResponse.getLatitude()) && !Double.isNaN(locationResponse.getLongitude())) {
-                        LatLng wifiLocation = new LatLng(locationResponse.getLatitude(), locationResponse.getLongitude());
+                    if (mMap != null) {
+                        // Add new point to the polyline on the map
+                        newWifiPoint = new LatLng(locationResponse.getLatitude(), locationResponse.getLongitude());
+                        wifiPathPoint.add(newWifiPoint);
+                        wifiPath.setPoints(wifiPathPoint);
 
-                        Log.d("WifiLocation", String.format(Locale.getDefault(), "New Lat: %.6f, New Lng: %.6f", wifiLocation.latitude, wifiLocation.longitude));
-
-//                        mMap.addMarker(new MarkerOptions()
-//                                .position(wifiLocation)
-//                                .title("Wi-Fi Location") // You can also include the floor information if needed
-//                                .snippet("Floor: " + locationResponse.getFloor()) // Assuming floor is a string. If it's null, this will show "Floor: null"
-//                        );
-//                        // Optionally, move the camera
-//                        mMap.animateCamera(CameraUpdateFactory.newLatLng(wifiLocation));
+                        if (wifiMarker == null) {
+                            wifiMarker = mMap.addMarker(new MarkerOptions()
+                                    .position(newWifiPoint)
+                                    .icon(BitmapDescriptorFactory.fromBitmap(getBitmapFromVector(getContext(), R.drawable.ic_baseline_navigation_yellow)))
+                                    .anchor(0.5f, 0.5f));
+                        } else {
+                            wifiMarker.setPosition(newWifiPoint);
+                        }
                     }
                 });
             } catch (Exception e) {
