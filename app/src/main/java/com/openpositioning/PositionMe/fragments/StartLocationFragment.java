@@ -20,6 +20,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -106,6 +107,14 @@ public class StartLocationFragment extends Fragment {
     private List<LatLng> pathPoints = new ArrayList<>(); // Points to construct the path polyline.
     private float zoom = 19f; // Zoom level for Google Maps.
 
+    //Evaluation Components
+    private int floorCount = 0; // Counter for the current floor being displayed.
+    private float elevationOffSet;
+    private float elevationVal;
+    private boolean isAutoFloorMapEnabled = false; // Flag for auto-updating the floor map based on elevation
+    private Switch switchAutoFloorMap;
+    private int currentFloor = 0; // Initialize with a value that will not match any real floor
+
 
 
     // Location Services
@@ -114,7 +123,7 @@ public class StartLocationFragment extends Fragment {
     private LocationCallback locationCallback; // Callback to handle location updates.
 
     // Sensor and Location Data
-    private SensorFusion sensorFusion; // Singleton SensorFusion class instance.
+    private SensorFusion sensorFusion = SensorFusion.getInstance();; // Singleton SensorFusion class instance.
     private LatLng position; // LatLng object to pass location to the map.
     private float[] startPosition = new float[2]; // Start position of the user to be stored.
 
@@ -122,7 +131,6 @@ public class StartLocationFragment extends Fragment {
     private boolean isIndoorMapShown = false; // Flag to track if an indoor map is currently displayed.
     private Building currentBuilding = null; // Tracks the current building user is in for indoor navigation.
     private HashMap<Integer, Float[]> floorElevationRanges; // Elevation ranges for automatic floor switching.
-    private int floorCount = 0; // Counter for the current floor being displayed.
 
     // Data Management
     private final List<Building> buildings = new ArrayList<>(); // Holds data for buildings, used in both initialization and indoor map display.
@@ -199,6 +207,7 @@ public class StartLocationFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
+        sensorFusion.startRecording();
         this.sensorFusion = SensorFusion.getInstance();
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
@@ -320,6 +329,7 @@ public class StartLocationFragment extends Fragment {
                 }
                 for (Location location : locationResult.getLocations()) {
                     // Formatting location data for display.
+                    elevationVal = sensorFusion.getElevation();
                     String altitudeStr = String.format(Locale.getDefault(), "ALT: %.2f m", sensorFusion.getElevation());
                     String latitudeStr = String.format(Locale.getDefault(), "LAT: %.6f", location.getLatitude());
                     String longitudeStr = String.format(Locale.getDefault(), "LNT.: %.6f", location.getLongitude());
@@ -367,6 +377,23 @@ public class StartLocationFragment extends Fragment {
 
                     Log.d("FusedLocation", String.format(Locale.getDefault(), "New Lat: %.6f, New Lng: %.6f", newFusionPoint.latitude, newFusionPoint.longitude));
 
+                    if(Float.isNaN(elevationOffSet))
+                        elevationOffSet = elevationVal;
+
+                    // Determining building presence and managing indoor map display.
+                    if (isAutoFloorMapEnabled) {
+                        floorCount = determineFloor(elevationVal);
+                        showFloor(currentBuilding,floorCount);
+                        buttonFloorUp.setVisibility(View.GONE);
+                        buttonFloorDown.setVisibility(View.GONE);
+                    } else {
+                        buttonFloorUp.setVisibility(View.VISIBLE);
+                        buttonFloorDown.setVisibility(View.VISIBLE);
+                    }
+
+
+                    Log.d("AutoMap", "floor: " + floorCount);
+
                     // Determining building presence and managing indoor map display.
                     manageIndoorMapDisplay(location);
                   }
@@ -400,6 +427,7 @@ public class StartLocationFragment extends Fragment {
                             switchToIndoorMap(building);
                             buttonFloorUp.setVisibility(View.VISIBLE);
                             buttonFloorDown.setVisibility(View.VISIBLE);
+                            switchAutoFloorMap.setVisibility(View.VISIBLE);
                             currentBuilding = building;
                             isIndoorMapShown = true;
                         }
@@ -411,6 +439,7 @@ public class StartLocationFragment extends Fragment {
                     hideIndoorMap();
                     buttonFloorUp.setVisibility(View.GONE);
                     buttonFloorDown.setVisibility(View.GONE);
+                    switchAutoFloorMap.setVisibility(View.GONE);
                     isIndoorMapShown = false;
                     currentBuilding = null;
                 }
@@ -429,40 +458,28 @@ public class StartLocationFragment extends Fragment {
      * @param building The building for which to display the floor.
      * @param floor    The floor number to display.
      */
+
     private void showFloor(Building building, int floor) {
-        // Remove any existing overlay from the map to ensure only one overlay is displayed at a time.
+        // Check if the requested floor is already being displayed
+        if (floor == currentFloor) {
+            return; // Do nothing if the current floor is already displayed
+        }
+
+        // Remove any existing overlay from the map
         if (currentOverlay != null) {
             currentOverlay.remove();
         }
 
-        // Retrieve the floor map as a BitmapDescriptor from the building's resource IDs.
+        // Retrieve the floor map as a BitmapDescriptor
         BitmapDescriptor floorDescriptor = BitmapDescriptorFactory.fromResource(building.getFloorMapResourceIds()[floor]);
 
-        // Check if the building has a complex shape to determine how to display the overlay.
-        if (building.isComplexShape()) {
-            // Calculate the overlay's center, width, and bearing for complex-shaped buildings.
-            LatLng center = calculateCenter(building.getBoundaryPoints());
-            float width = building.getName().equals("Sanderson Building") ? calculateWidth(building.getBoundaryPoints()) * 0.8f : calculateWidth(building.getBoundaryPoints());
-            float bearing = calculateBearing(building.getName(), building.getBoundaryPoints());
+        GroundOverlayOptions options = new GroundOverlayOptions()
+                .image(floorDescriptor)
+                .positionFromBounds(building.getBounds());
+        currentOverlay = mMap.addGroundOverlay(options);
 
-            // Create and set the overlay options for complex-shaped buildings, including position and bearing.
-            GroundOverlayOptions options = new GroundOverlayOptions()
-                    .image(floorDescriptor)
-                    .position(center, width)
-                    .bearing(bearing);
-            currentOverlay = mMap.addGroundOverlay(options);
-        } else {
-            // For regular buildings, use LatLngBounds to define the overlay's position.
-            GroundOverlayOptions options = new GroundOverlayOptions()
-                    .image(floorDescriptor)
-                    .positionFromBounds(building.getBounds());
-            currentOverlay = mMap.addGroundOverlay(options);
-        }
-
-        // Keep track of the current floor being displayed.
-        floorCount = floor;
-
-        // Update the UI to reflect the current building name and floor number.
+        // Update the currentFloor variable
+        currentFloor = floor;
     }
 
 
@@ -661,6 +678,16 @@ public class StartLocationFragment extends Fragment {
         }
     }
 
+    // Determines the floor number based on elevation data
+    private int determineFloor(float elevation) {
+        // Assuming ground floor starts at 0 meters and each floor is 3 meters high
+        int floor = (int) (elevation - elevationOffSet) / 5;
+        if (floor < 5 && floor > 0)
+            return floor;  // This will floor the division result to get the current floor
+        else
+            return 0;
+    }
+
 
     private void updateFloorBasedOnElevation(Building building, float currentElevation) {
         // Initialize the Floor height
@@ -728,7 +755,7 @@ public class StartLocationFragment extends Fragment {
                 mMap.getUiSettings().setTiltGesturesEnabled(true);
                 mMap.getUiSettings().setRotateGesturesEnabled(true);
                 mMap.getUiSettings().setScrollGesturesEnabled(true);
-//                mMap.setMyLocationEnabled(true); // Show the current location on the map
+                mMap.setMyLocationEnabled(true); // Show the current location on the map
 
 
                 // Draw Polyline for Each Building
@@ -769,6 +796,11 @@ public class StartLocationFragment extends Fragment {
         this.previousPosX = 0f;
         this.previousPosY = 0f;
 
+        switchAutoFloorMap = view.findViewById(R.id.switchAutoFloorMap);
+        switchAutoFloorMap.setChecked(isAutoFloorMapEnabled); // Set the switch to reflect the initial state of auto floor map updates
+        switchAutoFloorMap.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            isAutoFloorMapEnabled = isChecked;
+        });
 
 //        initializeSpinner(view);
 

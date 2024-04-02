@@ -241,6 +241,18 @@
                     android:text="pdrX: " />
             </androidx.cardview.widget.CardView>
 
+            <Switch
+                android:id="@+id/switchAutoFloorMap"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="19dp"
+                android:checked="true"
+                android:text="Auto Floor Map"
+                app:layout_constraintStart_toStartOf="parent"
+                android:visibility="gone"
+                app:layout_constraintTop_toBottomOf="@+id/btnChangePathType" />
+
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

@@ -9,8 +9,8 @@ public class ParticleFilter {
     private Random random = new Random();
     private static final int NUM_PARTICLES = 1000;
     private double wifiNoise = 0.0000035; // Adjust this value based on your sensor's accuracy.
-    private double gnssNoise = 0.0000095;
-    private double pdrNoise = 0.0000095;
+    private double gnssNoise = 0.0000075;
+    private double pdrNoise = 0.0000125;
 
     public ParticleFilter(LatLng initialPosition) {
         this.particles = new ArrayList<>();
