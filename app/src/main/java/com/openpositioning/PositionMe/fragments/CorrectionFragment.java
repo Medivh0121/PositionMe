@@ -48,10 +48,6 @@ public class CorrectionFragment extends Fragment {
     private Button button;
     //Singleton SensorFusion class which stores data from all sensors
     private SensorFusion sensorFusion = SensorFusion.getInstance();
-    //TextView to display user instructions
-    private TextView averageStepLengthText;
-    //Text Input to edit step length
-    private EditText stepLengthInput;
     //Average step length obtained from SensorFusion class
     private float averageStepLength;
     //User entered step length
@@ -143,63 +139,9 @@ public class CorrectionFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        //Instantiate text view to show average step length
-        this.averageStepLengthText = (TextView) getView().findViewById(R.id.averageStepView);
-        //Instantiate input text view to edit average step length
-        this.stepLengthInput = (EditText) getView().findViewById(R.id.inputStepLength);
-        //Instantiate path view for drawing trajectory
-        this.pathView = (PathView) getView().findViewById(R.id.pathView1);
         //obtain average step length from SensorFusion class
         averageStepLength = sensorFusion.passAverageStepLength();
         //Display average step count on UI
-        averageStepLengthText.setText(getActivity().getResources().getString(R.string.averageStepLgn) + ": " + String.format("%.2f", averageStepLength));
-        //Check for enter to be pressed when user inputs new step length
-        this.stepLengthInput.setOnKeyListener(new View.OnKeyListener() {
-            @Override
-            public boolean onKey(View v, int keyCode, KeyEvent event) {
-                //Check if enter key has been pressed
-                if(keyCode == KeyEvent.KEYCODE_ENTER){
-                    //Convert entered string to a float
-                    newStepLength = Float.parseFloat(changedText.toString());
-                    //Rescale the path and call function to redraw
-                    //scalingRatio = newStepLength/averageStepLength;
-                    sensorFusion.redrawPath(newStepLength/averageStepLength);
-                    //Show user new average step value
-                    averageStepLengthText.setText(getActivity().getResources().
-                            getString(R.string.averageStepLgn) + ": " + String.format("%.2f", newStepLength));
-                    //redraw the path
-                    pathView.invalidate();
-                    //OnKew is called twice (once on press and release of button so the previous
-                    // step count is updated only the second time)
-                    secondPass++;
-                    if(secondPass == 2) {
-                        averageStepLength = newStepLength;
-                        secondPass = 0;
-                    }
-                }
-
-                return false;
-            }
-        });
-
-        //Detect changes in the text editor. Call all default methods and store final string
-        this.stepLengthInput.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                //store string when user has finished changing the text
-                changedText = s;
-            }
-        });
 
         // Add button to navigate back to home screen.
         this.button = (Button) getView().findViewById(R.id.correction_done);

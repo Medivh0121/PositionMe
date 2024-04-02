@@ -44,7 +44,7 @@
             app:layout_constraintStart_toStartOf="parent" />
 
         <com.openpositioning.PositionMe.PathView
-            android:id="@+id/pathView1"
+            android:id="@+id/correction_done"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:contentDescription="Path drawing"
