@@ -755,8 +755,7 @@ public class StartLocationFragment extends Fragment {
                 mMap.getUiSettings().setTiltGesturesEnabled(true);
                 mMap.getUiSettings().setRotateGesturesEnabled(true);
                 mMap.getUiSettings().setScrollGesturesEnabled(true);
-                mMap.setMyLocationEnabled(true); // Show the current location on the map
-
+                mMap.setMyLocationEnabled(true);
 
                 // Draw Polyline for Each Building
                 initBuilding();
@@ -834,7 +833,7 @@ public class StartLocationFragment extends Fragment {
                 // Set the start location obtained
                 sensorFusion.setStartGNSSLatitude(startPosition);
 
-                particleFilter = new ParticleFilter(new LatLng(startPosition[0], startPosition[1]));
+                particleFilter = new ParticleFilter(new LatLng(55.922912958036505, -3.1739726568930804));
 
                 refreshDataHandler.post(pdrUpdateTask);
 
