@@ -156,10 +156,11 @@ public class StartLocationFragment extends Fragment {
     private LatLng newPdrPoint;
     private LatLng newFusionPoint;
     private LatLng newWifiPoint;
-
+    private LatLng newGPSPoint;
+    private LatLng estimateCoord;
+    private ParticleFilter particleFilter;
 
     private Marker pdrMarker, fusedMarker, gnssMarker, wifiMarker; // Class member to keep track of the marker
-    private float dircInDegrees;
 
 
 
@@ -205,7 +206,6 @@ public class StartLocationFragment extends Fragment {
         serverCommunications = new ServerCommunications(context);
 
         startPosition = sensorFusion.getGNSSLatitude(false);
-        ParticleFilter particleFilter = new ParticleFilter(new LatLng(startPosition[0], startPosition[1]));
 
 
         this.refreshDataHandler = new Handler();
@@ -334,7 +334,7 @@ public class StartLocationFragment extends Fragment {
 
 
                     // Adding the current location to the path and updating the map.
-                    LatLng newGPSPoint = new LatLng(location.getLatitude(), location.getLongitude());
+                    newGPSPoint = new LatLng(location.getLatitude(), location.getLongitude());
                     pathPoints.add(newGPSPoint);
                     gnssPath.setPoints(pathPoints);
 
@@ -351,7 +351,7 @@ public class StartLocationFragment extends Fragment {
 
 
 
-                    LatLng estimateCoord = particleFilter.particleFilter(newWifiPoint, newGPSPoint, newPdrPoint);
+                    estimateCoord = particleFilter.particleFilter(newWifiPoint, newGPSPoint, newPdrPoint);
                     newFusionPoint = estimateCoord;
                     fusionPathPoint.add(newFusionPoint);
                     fusionPath.setPoints(fusionPathPoint);
@@ -364,6 +364,9 @@ public class StartLocationFragment extends Fragment {
                     } else {
                         fusedMarker.setPosition(newFusionPoint);
                     }
+
+                    Log.d("FusedLocation", String.format(Locale.getDefault(), "New Lat: %.6f, New Lng: %.6f", newFusionPoint.latitude, newFusionPoint.longitude));
+
 
 
                     // Determining building presence and managing indoor map display.
@@ -462,7 +465,6 @@ public class StartLocationFragment extends Fragment {
         floorCount = floor;
 
         // Update the UI to reflect the current building name and floor number.
-        updateFloorDisplay(building.getName(), floor);
     }
 
 
@@ -553,22 +555,6 @@ public class StartLocationFragment extends Fragment {
     }
 
 
-    /**
-     * Updates the UI to display the current building name and floor number.
-     *
-     * @param buildingName The name of the building.
-     * @param floor        The floor number.
-     */
-    private void updateFloorDisplay(String buildingName, int floor) {
-        TextView buildingNameTextView = getView().findViewById(R.id.textViewBuildingName);
-        TextView floorNumberTextView = getView().findViewById(R.id.textViewFloorNumber);
-
-        buildingNameTextView.setText(buildingName);
-        buildingNameTextView.setVisibility(View.VISIBLE);
-        String floorDisplay = formatFloorNumber(buildingName, floor);
-        floorNumberTextView.setText(floorDisplay);
-        floorNumberTextView.setVisibility(View.VISIBLE);
-    }
 
     /**
      * Formats the floor number for display. Special case with lower ground is dealing separately.
@@ -653,11 +639,6 @@ public class StartLocationFragment extends Fragment {
             currentOverlay.remove(); // Remove the GroundOverlay from the map
             currentOverlay = null; // Clear the reference
         }
-        TextView buildingNameTextView = getView().findViewById(R.id.textViewBuildingName);
-        TextView floorNumberTextView = getView().findViewById(R.id.textViewFloorNumber);
-        buildingNameTextView.setVisibility(View.GONE);
-        floorNumberTextView.setVisibility(View.GONE);
-
     }
 
     /**
@@ -858,7 +839,7 @@ public class StartLocationFragment extends Fragment {
         this.previousPosY = 0f;
 
 
-        initializeSpinner(view);
+//        initializeSpinner(view);
 
         Button btnChangeMapType = view.findViewById(R.id.btnChangeMapType);
         btnChangeMapType.setOnClickListener(new View.OnClickListener() {
@@ -890,8 +871,8 @@ public class StartLocationFragment extends Fragment {
                 // Set the start location obtained
                 sensorFusion.setStartGNSSLatitude(startPosition);
 
-                String filename = "PdrPathData.csv";
-                deleteExistingCsv(filename);
+                particleFilter = new ParticleFilter(new LatLng(startPosition[0], startPosition[1]));
+
                 refreshDataHandler.post(pdrUpdateTask);
 
 
@@ -936,69 +917,6 @@ public class StartLocationFragment extends Fragment {
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 101;
 
-    private void initializeSpinner(View view) {
-        Spinner mySpinner = view.findViewById(R.id.spinner);
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(getContext(),
-                R.array.spinner_items, android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        mySpinner.setAdapter(adapter);
-
-        mySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-
-                // Hide all paths initially
-                if (gnssPath != null) {
-                    gnssPath.setVisible(false);
-                }
-                if (pdrPath != null) {
-                    pdrPath.setVisible(false);
-                }
-                if (fusionPath != null) {
-                    fusionPath.setVisible(false);
-                }
-
-                switch (position) {
-                    case 0:
-                        if (fusionPath != null) {
-                            fusionPath.setVisible(true);
-                        }
-                        Log.d("TEST1", "Fusion");
-                        break;
-                    case 1:
-                        if (gnssPath != null) {
-                            gnssPath.setVisible(true);
-                        }
-                        Log.d("TEST1", "GNSS");
-                        break;
-                    case 2:
-                        if (pdrPath != null) {
-                            pdrPath.setVisible(true);
-                        }
-                        Log.d("TEST1", "PDR");
-                        break;
-                    case 3:
-                        if (fusionPath != null) {
-                            pdrPath.setVisible(true);
-                            gnssPath.setVisible(true);
-                            fusionPath.setVisible(true);
-                            wifiPath.setVisible(true);
-                        }
-                        Log.d("TEST1", "WIFI");
-                        break;
-                }
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                // Optional: Handle the case where nothing is selected
-            }
-        });
-
-        // 设置默认选项为第一个
-        mySpinner.setSelection(0);
-    }
-
 //    private void initializeSpinner(View view) {
 //        Spinner mySpinner = view.findViewById(R.id.spinner);
 //        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(getContext(),
@@ -1009,30 +927,48 @@ public class StartLocationFragment extends Fragment {
 //        mySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
 //            @Override
 //            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-//                // Hide all paths and markers initially
-//                setPathVisibility(gnssPath, false);
-//                setPathVisibility(pdrPath, false);
-//                setPathVisibility(fusionPath, false);
-//                setMarkerVisibility(gnssMarker, false);
-//                setMarkerVisibility(pdrMarker, false);
-//                setMarkerVisibility(fusedMarker, false);
 //
-//                // Display selected path and marker
+//                // Hide all paths initially
+//                if (gnssPath != null) {
+//                    gnssPath.setVisible(false);
+//                }
+//                if (pdrPath != null) {
+//                    pdrPath.setVisible(false);
+//                }
+//                if (fusionPath != null) {
+//                    fusionPath.setVisible(false);
+//                }
+//                if (wifiPath != null) {
+//                    wifiPath.setVisible(false);
+//                }
+//
 //                switch (position) {
-//                    case 0: // Fusion Path selected
-//                        setPathVisibility(fusionPath, true);
-//                        setMarkerVisibility(fusedMarker, true);
+//                    case 0:
+//                        if (fusionPath != null) {
+//                            fusionPath.setVisible(true);
+//                        }
+//                        Log.d("TEST1", "Fusion");
 //                        break;
-//                    case 1: // GNSS Path selected
-//                        setPathVisibility(gnssPath, true);
-//                        setMarkerVisibility(gnssMarker, true);
+//                    case 1:
+//                        if (gnssPath != null) {
+//                            gnssPath.setVisible(true);
+//                        }
+//                        Log.d("TEST1", "GNSS");
 //                        break;
-//                    case 2: // PDR Path selected
-//                        setPathVisibility(pdrPath, true);
-//                        setMarkerVisibility(pdrMarker, true);
+//                    case 2:
+//                        if (pdrPath != null) {
+//                            pdrPath.setVisible(true);
+//                        }
+//                        Log.d("TEST1", "PDR");
 //                        break;
-//                    default:
-//                        Log.d("SpinnerSelection", "No path selected or unrecognized selection");
+//                    case 3:
+//                        if (fusionPath != null) {
+//                            pdrPath.setVisible(true);
+//                            gnssPath.setVisible(true);
+//                            fusionPath.setVisible(true);
+//                            wifiPath.setVisible(true);
+//                        }
+//                        Log.d("TEST1", "WIFI");
 //                        break;
 //                }
 //            }
@@ -1043,23 +979,10 @@ public class StartLocationFragment extends Fragment {
 //            }
 //        });
 //
-//        // Set default selection to the first item (Fusion Path)
+//        // 设置默认选项为第一个
 //        mySpinner.setSelection(0);
 //    }
 
-    // Helper method to safely change path visibility
-    private void setPathVisibility(Polyline path, boolean isVisible) {
-        if (path != null) {
-            path.setVisible(isVisible);
-        }
-    }
-
-    // Helper method to safely change marker visibility
-    private void setMarkerVisibility(Marker marker, boolean isVisible) {
-        if (marker != null) {
-            marker.setVisible(isVisible);
-        }
-    }
 
 
     /**
@@ -1102,7 +1025,7 @@ public class StartLocationFragment extends Fragment {
             // Fetch PDR values and update UI
             pdrValues = sensorFusion.getSensorValueMap().get(SensorTypes.PDR);
             float orientationRadians = sensorFusion.passOrientation();
-            dircInDegrees = (float) Math.toDegrees(orientationRadians);
+            float dircInDegrees = (float) Math.toDegrees(orientationRadians);
 
             if (pdrValues != null && pdrValues.length >= 2) {
                 // Constants for conversion
@@ -1169,28 +1092,29 @@ public class StartLocationFragment extends Fragment {
         Executors.newSingleThreadExecutor().submit(() -> {
             try {
                 String wifiFingerprintJson = wifiFPManager.createWifiFingerprintJson();
-//                Log.d("wifiFingerPrint", String.format(Locale.getDefault(), wifiFingerprintJson));
 
                 LocationResponse locationResponse = serverCommunications.sendWifiFingerprintToServer(wifiFingerprintJson);
-                Log.d("WifiLocation", String.format(Locale.getDefault(), "New Lat: %.6f, New Lng: %.6f", locationResponse.getLatitude(), locationResponse.getLongitude()));
 
-                getActivity().runOnUiThread(() -> {
-                    if (mMap != null) {
-                        // Add new point to the polyline on the map
-                        newWifiPoint = new LatLng(locationResponse.getLatitude(), locationResponse.getLongitude());
-                        wifiPathPoint.add(newWifiPoint);
-                        wifiPath.setPoints(wifiPathPoint);
+                if (isValidCoordinate(locationResponse.getLatitude(), locationResponse.getLongitude())) {
+                    Log.d("WifiLocation", String.format(Locale.getDefault(), "New Lat: %.6f, New Lng: %.6f", locationResponse.getLatitude(), locationResponse.getLongitude()));
+                    getActivity().runOnUiThread(() -> {
+                        if (mMap != null) {
+                            // Add new point to the polyline on the map
+                            newWifiPoint = new LatLng(locationResponse.getLatitude(), locationResponse.getLongitude());
+                            wifiPathPoint.add(newWifiPoint);
+                            wifiPath.setPoints(wifiPathPoint);
 
-                        if (wifiMarker == null) {
-                            wifiMarker = mMap.addMarker(new MarkerOptions()
-                                    .position(newWifiPoint)
-                                    .icon(BitmapDescriptorFactory.fromBitmap(getBitmapFromVector(getContext(), R.drawable.ic_baseline_navigation_yellow)))
-                                    .anchor(0.5f, 0.5f));
-                        } else {
-                            wifiMarker.setPosition(newWifiPoint);
+                            if (wifiMarker == null) {
+                                wifiMarker = mMap.addMarker(new MarkerOptions()
+                                        .position(newWifiPoint)
+                                        .icon(BitmapDescriptorFactory.fromBitmap(getBitmapFromVector(getContext(), R.drawable.ic_baseline_navigation_yellow)))
+                                        .anchor(0.5f, 0.5f));
+                            } else {
+                                wifiMarker.setPosition(newWifiPoint);
+                            }
                         }
-                    }
-                });
+                    });
+                }
             } catch (Exception e) {
                 e.printStackTrace();
                 // Consider providing feedback to the user that an error occurred
@@ -1201,19 +1125,14 @@ public class StartLocationFragment extends Fragment {
         });
     }
 
-
-
-    private void deleteExistingCsv(String filename) {
-        File file = new File(getActivity().getFilesDir(), filename);
-        if (file.exists()) {
-            boolean deleted = file.delete();
-            if (deleted) {
-                Log.d("CSV_DELETE", "Existing CSV file was deleted.");
-            } else {
-                Log.e("CSV_DELETE_ERROR", "Failed to delete existing CSV file.");
-            }
-        }
+    private boolean isValidCoordinate(double latitude, double longitude) {
+        // Check if the coordinates are not NaN and within reasonable bounds
+        return !Double.isNaN(latitude) && !Double.isNaN(longitude)
+                && latitude >= -90 && latitude <= 90
+                && longitude >= -180 && longitude <= 180;
     }
+
+
 
 
     @Override

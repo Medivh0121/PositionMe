@@ -451,7 +451,7 @@ public class ServerCommunications implements Observable {
 
 
     public LocationResponse sendWifiFingerprintToServer(String jsonWifiFingerprint) throws IOException {
-        Log.d("ServerCommunications", "JSON being sent: " + jsonWifiFingerprint);
+//        Log.d("ServerCommunications", "JSON being sent: " + jsonWifiFingerprint);
 
         // Adjusted OkHttpClient with timeout settings
         OkHttpClient client = new OkHttpClient.Builder()
@@ -482,20 +482,14 @@ public class ServerCommunications implements Observable {
             if (response.isSuccessful()) {
                 // Parse the successful response to extract latitude and longitude
                 String responseData = Objects.requireNonNull(response.body()).string();
-                // Log the response data
-                Log.d("ServerCommunications", "Response received: " + responseData);
+//                // Log the response data
+//                Log.d("ServerCommunications", "Response received: " + responseData);
 
                 JSONObject jsonObj = new JSONObject(responseData);
                 double latitude = jsonObj.optDouble("lat", Double.NaN); // Use "lat" instead of "latitude"
                 double longitude = jsonObj.optDouble("lon", Double.NaN); // Use "lon" instead of "longitude"
                 String floor = jsonObj.optString("floor", null); // Default to null if not present
                 return new LocationResponse(latitude, longitude, floor);
-            } else if (response.code() == 422) {
-                // Handle the validation error
-                String responseBody = response.body().string();
-                Log.e("Validation Error", responseBody);
-                // Additional error handling goes here
-                throw new IOException("Validation error with body: " + responseBody);
             } else {
                 // Handle other types of errors
                 Log.e("Response Code", response.code() + " " + response.body().string());

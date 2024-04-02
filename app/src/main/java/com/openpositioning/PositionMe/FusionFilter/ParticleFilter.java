@@ -50,14 +50,14 @@ public class ParticleFilter {
                     particle.position.longitude + (random.nextDouble() - 0.5) * 0.00001);
         }
 
-        if (wifiCoord != null) {
-            updateWeights(wifiCoord, sensorNoise);
+        if (wifiCoord != null && isValidCoordinate(wifiCoord)) {
+            updateWeights(wifiCoord, 0.0000070);
         }
         // Update weights based on GNSS and PDR measurements
-        if (gnssCoord != null) {
+        if (gnssCoord != null && isValidCoordinate(gnssCoord)) {
             updateWeights(gnssCoord, sensorNoise);
         }
-        if (pdrCoord != null) {
+        if (pdrCoord != null && isValidCoordinate(pdrCoord)) {
             updateWeights(pdrCoord, sensorNoise);
         }
 
@@ -65,6 +65,14 @@ public class ParticleFilter {
         resample();
 
         return estimatePosition();
+    }
+
+    private boolean isValidCoordinate(LatLng coord) {
+        // Check if the coordinate is not NaN, not exactly (0,0), and within reasonable bounds
+        return !Double.isNaN(coord.latitude) && !Double.isNaN(coord.longitude)
+                && !(coord.latitude == 0.0 && coord.longitude == 0.0) // Exclude (0,0) as invalid
+                && coord.latitude >= -90 && coord.latitude <= 90
+                && coord.longitude >= -180 && coord.longitude <= 180;
     }
 
     private void updateWeights(LatLng coord, double noise) {
@@ -76,17 +84,66 @@ public class ParticleFilter {
         }
     }
 
+
+    // Old version
+//    private void normalizeWeights() {
+//        double totalWeight = 0.0;
+//        for (Particle particle : particles) {
+//            totalWeight += particle.weight;
+//        }
+//        for (Particle particle : particles) {
+//            particle.weight /= totalWeight;
+//        }
+//    }
+
+    //Not divided by 0
     private void normalizeWeights() {
         double totalWeight = 0.0;
         for (Particle particle : particles) {
             totalWeight += particle.weight;
         }
-        for (Particle particle : particles) {
-            particle.weight /= totalWeight;
+        if (totalWeight == 0) {
+            // If total weight is zero, assign equal weights to avoid division by zero
+            double equalWeight = 1.0 / particles.size();
+            for (Particle particle : particles) {
+                particle.weight = equalWeight;
+            }
+        } else {
+            for (Particle particle : particles) {
+                particle.weight /= totalWeight;
+            }
         }
     }
 
+
+
+
+//    private void resample() {
+//
+//        List<Particle> newParticles = new ArrayList<>();
+//        double[] cumulativeSum = new double[particles.size()];
+//        cumulativeSum[0] = particles.get(0).weight;
+//        for (int i = 1; i < particles.size(); i++) {
+//            cumulativeSum[i] = cumulativeSum[i - 1] + particles.get(i).weight;
+//        }
+//
+//        for (int i = 0; i < NUM_PARTICLES; i++) {
+//            double randomVal = random.nextDouble();
+//            for (int j = 0; j < cumulativeSum.length; j++) {
+//                if (cumulativeSum[j] >= randomVal) {
+//                    Particle p = particles.get(j);
+//                    newParticles.add(new Particle(p.position.latitude, p.position.longitude, 1.0 / NUM_PARTICLES));
+//                    break;
+//                }
+//            }
+//        }
+//        particles = newParticles;
+//    }
+
     private void resample() {
+        if (particles.isEmpty()) {
+            return; // Early return if there are no particles to resample
+        }
 
         List<Particle> newParticles = new ArrayList<>();
         double[] cumulativeSum = new double[particles.size()];
@@ -95,8 +152,15 @@ public class ParticleFilter {
             cumulativeSum[i] = cumulativeSum[i - 1] + particles.get(i).weight;
         }
 
+        // Ensure we are handling the case where all weights might be zero
+        if (cumulativeSum[cumulativeSum.length - 1] == 0) {
+            // Optional: Re-initialize particles here if needed
+            // For now, we'll simply return to avoid the IndexOutOfBoundsException
+            return;
+        }
+
         for (int i = 0; i < NUM_PARTICLES; i++) {
-            double randomVal = random.nextDouble();
+            double randomVal = random.nextDouble() * cumulativeSum[cumulativeSum.length - 1]; // Scale by the total weight
             for (int j = 0; j < cumulativeSum.length; j++) {
                 if (cumulativeSum[j] >= randomVal) {
                     Particle p = particles.get(j);
@@ -108,6 +172,22 @@ public class ParticleFilter {
         particles = newParticles;
     }
 
+//    private LatLng estimatePosition() {
+//        double sumLat = 0.0, sumLon = 0.0, totalWeight = 0.0;
+//        for (Particle particle : particles) {
+//            sumLat += particle.position.latitude * particle.weight;
+//            sumLon += particle.position.longitude * particle.weight;
+//            totalWeight += particle.weight;
+//        }
+//
+//        // Make sure to divide by the total weight to get the weighted average
+//        double estimatedLat = sumLat / totalWeight;
+//        double estimatedLon = sumLon / totalWeight;
+//        return new LatLng(estimatedLat, estimatedLon);
+//    }
+
+    private LatLng lastKnownValidPosition = null; // Initialize this variable appropriately
+
     private LatLng estimatePosition() {
         double sumLat = 0.0, sumLon = 0.0, totalWeight = 0.0;
         for (Particle particle : particles) {
@@ -116,9 +196,14 @@ public class ParticleFilter {
             totalWeight += particle.weight;
         }
 
-        // Make sure to divide by the total weight to get the weighted average
+        if (totalWeight == 0) {
+            // Return the last known valid position if total weight is 0
+            return lastKnownValidPosition != null ? lastKnownValidPosition : new LatLng(0.0, 0.0); // Fallback to (0,0) if no last known position
+        }
+
         double estimatedLat = sumLat / totalWeight;
         double estimatedLon = sumLon / totalWeight;
-        return new LatLng(estimatedLat, estimatedLon);
+        lastKnownValidPosition = new LatLng(estimatedLat, estimatedLon); // Update the last known valid position
+        return lastKnownValidPosition;
     }
 }
