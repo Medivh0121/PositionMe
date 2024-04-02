@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="15dp">
+
+    <!-- 页面标题 -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="16dp"
+        android:paddingLeft="10dp"
+        android:text="Current location information"
+        android:textSize="24sp"
+        android:textColor="#3C4043" />
+
+    <!-- 上层的两个按钮 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingBottom="8dp">
+
+        <LinearLayout
+            android:id="@+id/layer_longitude"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+            <ImageView
+                android:id="@+id/layer_longitude_view"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:padding="9dp"
+                android:src="@drawable/default_path"/> <!-- 替换为你的图片资源 -->
+            <TextView
+                android:id="@+id/layer_longitude_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#3C4043"
+                android:text="Default" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layer_latitude"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/layer_latitude_view"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:padding="9dp"
+                android:src="@drawable/satellite" /> <!-- 替换为你的图片资源 -->
+            <TextView
+                android:id="@+id/layer_latitude_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#3C4043"
+                android:text="Satellite" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layer_altitude"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/layer_altitude_view"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:padding="9dp"
+                android:src="@drawable/terrain" /> <!-- 替换为你的图片资源 -->
+            <TextView
+                android:id="@+id/layer_altitude_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#3C4043"
+                android:text="Terrain" />
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>

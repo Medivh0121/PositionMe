@@ -25,6 +25,7 @@ public class UIFunctions {
     private final GoogleMap mMap;
     private BottomSheetDialog bottomLayerDialog;
     private BottomSheetDialog bottomPathDialog;
+    private BottomSheetDialog bottomInfoDialog;
     private final Polyline fusionPath;
     private final Polyline wifiPath;
     private final Polyline gnssPath;
@@ -52,6 +53,28 @@ public class UIFunctions {
         this.wifiMarker = WifiMarker;
         this.gnssMarker = GNSSMarker;
         this.pdrMarker = PDRMarker;
+    }
+
+    public void showLocationInfo() {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+
+        if (bottomInfoDialog == null || !bottomInfoDialog.isShowing()) {
+            bottomInfoDialog = new BottomSheetDialog(context);
+            View bottomLayerView = LayoutInflater.from(context).inflate(R.layout.item_info_bottom_dialog, null);
+            bottomInfoDialog.setContentView(bottomLayerView);
+
+            LinearLayout layerLong = bottomLayerView.findViewById(R.id.layer_longitude);
+            TextView textLong = bottomLayerView.findViewById(R.id.layer_longitude_text);
+
+            LinearLayout layerLan = bottomLayerView.findViewById(R.id.layer_latitude);
+            TextView textLan = bottomLayerView.findViewById(R.id.layer_latitude_text);
+
+            LinearLayout layerAlt = bottomLayerView.findViewById(R.id.layer_altitude);
+            TextView textAlt = bottomLayerView.findViewById(R.id.layer_altitude_text);
+
+            bottomInfoDialog.show();
+
+        }
     }
 
 
@@ -283,7 +306,6 @@ public class UIFunctions {
             }
         }
     }
-
 
 
 }

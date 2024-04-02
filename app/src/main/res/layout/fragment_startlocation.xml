@@ -32,7 +32,7 @@
                 android:text="Start"
                 android:textColor="#0B57D0"
                 android:layout_marginBottom="16dp"
-                android:elevation="0dp"
+                android:elevation="4dp"
                 app:backgroundTint="@null"
                 app:icon="@drawable/ic_direction"
                 app:iconGravity="textStart"
@@ -55,6 +55,7 @@
                 android:layout_width="45dp"
                 android:layout_height="45dp"
                 android:background="@drawable/button_round_outline"
+                android:elevation="4dp"
                 app:backgroundTint="@null"
                 app:icon="@drawable/layer_icon"
                 app:iconGravity="textStart"
@@ -76,6 +77,7 @@
                 android:layout_width="45dp"
                 android:layout_height="45dp"
                 android:background="@drawable/button_round_outline"
+                android:elevation="4dp"
                 app:backgroundTint="@null"
                 app:icon="@drawable/ic_path"
                 app:iconGravity="textStart"
@@ -90,12 +92,33 @@
                 app:layout_constraintVertical_bias="0.200" />
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnShowLocation"
+                android:layout_width="45dp"
+                android:layout_height="45dp"
+                android:background="@drawable/button_round_outline"
+                android:elevation="4dp"
+                app:backgroundTint="@null"
+                app:icon="@drawable/ic_info"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
+                app:iconSize="25dp"
+                app:iconTint="@null"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.95"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.300" />
+
+
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonFloorUp"
                 android:layout_width="45dp"
                 android:layout_height="45dp"
                 android:layout_marginTop="300dp"
                 android:background="@drawable/button_round_outline"
                 android:visibility="gone"
+                android:elevation="4dp"
                 app:backgroundTint="@null"
                 app:icon="@drawable/upstair_icon"
                 app:iconGravity="textStart"
@@ -114,6 +137,7 @@
                 android:layout_marginTop="15dp"
                 android:background="@drawable/button_round_outline"
                 android:visibility="gone"
+                android:elevation="4dp"
                 app:backgroundTint="@null"
                 app:icon="@drawable/down_stair_icon"
                 app:iconGravity="textStart"
@@ -130,6 +154,7 @@
             android:layout_marginTop="62dp"
             android:background="@drawable/switch_backgound"
             android:padding="8dp"
+            android:elevation="4dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 

@@ -336,16 +336,16 @@ public class StartLocationFragment extends Fragment {
                     newGPSPoint = new LatLng(location.getLatitude(), location.getLongitude());
                     pathPoints.add(newGPSPoint);
                     gnssPath.setPoints(pathPoints);
-
-                    if (gnssMarker == null) {
-                        gnssMarker = mMap.addMarker(new MarkerOptions()
-                                .position(newGPSPoint)
-                                .visible(true)
-                                .icon(BitmapDescriptorFactory.fromBitmap(getBitmapFromVector(getContext(), R.drawable.ic_baseline_navigation_red)))
-                                .anchor(0.5f, 0.5f));
-                    } else {
-                        gnssMarker.setPosition(newGPSPoint);
-                    }
+//
+//                    if (gnssMarker == null) {
+//                        gnssMarker = mMap.addMarker(new MarkerOptions()
+//                                .position(newGPSPoint)
+//                                .visible(true)
+//                                .icon(BitmapDescriptorFactory.fromBitmap(getBitmapFromVector(getContext(), R.drawable.ic_baseline_navigation_blue)))
+//                                .anchor(0.5f, 0.5f));
+//                    } else {
+//                        gnssMarker.setPosition(newGPSPoint);
+//                    }
 
                     estimateCoord = particleFilter.particleFilter(newWifiPoint, newGPSPoint, newPdrPoint);
                     newFusionPoint = estimateCoord;
@@ -780,22 +780,7 @@ public class StartLocationFragment extends Fragment {
             isAutoFloorMapEnabled = isChecked;
         });
 
-//        initializeSpinner(view);
 
-        Button btnChangeMapType = view.findViewById(R.id.btnChangeMapType);
-        btnChangeMapType.setOnClickListener(new View.OnClickListener() {
-            private int currentMapTypeIndex = 0;
-            private final int[] mapTypes = {GoogleMap.MAP_TYPE_NORMAL, GoogleMap.MAP_TYPE_SATELLITE, GoogleMap.MAP_TYPE_TERRAIN, GoogleMap.MAP_TYPE_HYBRID};
-
-            @Override
-            public void onClick(View v) {
-                // Cycle through the map types
-                currentMapTypeIndex = (currentMapTypeIndex + 1) % mapTypes.length;
-                if (mMap != null) {
-                    mMap.setMapType(mapTypes[currentMapTypeIndex]);
-                }
-            }
-        });
 
         // Add button to begin PDR recording and go to recording fragment.
         this.button = (Button) getView().findViewById(R.id.startLocationDone);
@@ -854,6 +839,15 @@ public class StartLocationFragment extends Fragment {
             btnChangePathType.setOnClickListener(v -> {
                 if (uiFunctions != null) {
                     uiFunctions.showPathTypeDialog();
+                }
+            });}
+
+        // TODO 这里获取Location的信息
+        Button btnGetLocationInfo = view.findViewById(R.id.btnShowLocation);
+        if (btnGetLocationInfo != null) {
+            btnGetLocationInfo.setOnClickListener(v -> {
+                if (uiFunctions != null) {
+                    uiFunctions.showLocationInfo();
                 }
             });}
 
@@ -1006,7 +1000,7 @@ public class StartLocationFragment extends Fragment {
                                     .position(newPdrPoint)
                                     .rotation(dircInDegrees)
                                     .visible(true)
-                                    .icon(BitmapDescriptorFactory.fromBitmap(getBitmapFromVector(getContext(), R.drawable.ic_baseline_navigation_blue)))
+                                    .icon(BitmapDescriptorFactory.fromBitmap(getBitmapFromVector(getContext(), R.drawable.ic_baseline_navigation_red)))
                                     .anchor(0.5f, 0.5f));
                         } else {
                             pdrMarker.setPosition(newPdrPoint);
@@ -1125,7 +1119,7 @@ public class StartLocationFragment extends Fragment {
         if (gnssPath == null) {
             gnssPath = mMap.addPolyline(new PolylineOptions()
                     .width(10)
-                    .color(Color.RED)
+                    .color(Color.BLUE)
                     .addAll(pathPoints) // Add existing points, if any
                     .visible(false) // Ensure it's visible
                     .zIndex(1000)); // Ensure it's drawn above other map elements
@@ -1135,7 +1129,7 @@ public class StartLocationFragment extends Fragment {
         if (pdrPath == null) {
             pdrPath = mMap.addPolyline(new PolylineOptions()
                     .width(10)
-                    .color(Color.BLUE)
+                    .color(Color.RED)
                     .addAll(pdrPathPoint) // Add existing points, if any
                     .visible(false) // Ensure it's visible
                     .zIndex(1000)); // Ensure it's drawn above other map elements
