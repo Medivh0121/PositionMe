@@ -138,8 +138,6 @@ public class StartLocationFragment extends Fragment {
     // Flags
     private boolean requestingLocationUpdates = false; // Flag to track if location updates are being requested.
 
-    private TextView positionX;
-    private TextView positionY;
     private Handler refreshDataHandler;
     float[] pdrValues;
     private Polyline userPathPolyline;
@@ -328,18 +326,7 @@ public class StartLocationFragment extends Fragment {
                     return; // Early return if no location result is available.
                 }
                 for (Location location : locationResult.getLocations()) {
-                    // Formatting location data for display.
-                    elevationVal = sensorFusion.getElevation();
-                    String altitudeStr = String.format(Locale.getDefault(), "ALT: %.2f m", sensorFusion.getElevation());
-                    String latitudeStr = String.format(Locale.getDefault(), "LAT: %.6f", location.getLatitude());
-                    String longitudeStr = String.format(Locale.getDefault(), "LNT.: %.6f", location.getLongitude());
-                    String accuracyStr = String.format(Locale.getDefault(), "ACC.: ±%.2f m", location.getAccuracy());
 
-                    // Updating UI elements with the formatted location data.
-                    elevationTextView.setText(altitudeStr);
-                    latitudeTextView.setText(latitudeStr);
-                    longitudeTextView.setText(longitudeStr);
-                    accuracyTextView.setText(accuracyStr);
 
                     Log.d("GNSSUpdate", String.format(Locale.getDefault(), "New Lat: %.6f, New Lng: %.6f", location.getLatitude(), location.getLongitude()));
 
@@ -719,11 +706,6 @@ public class StartLocationFragment extends Fragment {
         ((AppCompatActivity) getActivity()).getSupportActionBar().hide();
         View rootView = inflater.inflate(R.layout.fragment_startlocation, container, false);
 
-        elevationTextView = rootView.findViewById(R.id.altitudeTextView);
-        latitudeTextView = rootView.findViewById(R.id.latitudeTextView);
-        longitudeTextView = rootView.findViewById(R.id.longitudeTextView);
-        accuracyTextView = rootView.findViewById(R.id.accuracyTextView);
-
 
         //Obtain the start position from the GPS data from the SensorFusion class
 //        startPosition = sensorFusion.getGNSSLatitude(false);
@@ -789,9 +771,6 @@ public class StartLocationFragment extends Fragment {
         buttonFloorUp = view.findViewById(R.id.buttonFloorUp);
         buttonFloorDown = view.findViewById(R.id.buttonFloorDown);
 
-        this.positionX = getView().findViewById(R.id.currentXPos);
-        this.positionY = getView().findViewById(R.id.currentYPos);
-
         this.previousPosX = 0f;
         this.previousPosY = 0f;
 
@@ -849,9 +828,6 @@ public class StartLocationFragment extends Fragment {
                     refreshDataHandler.removeCallbacks(pdrUpdateTask);
 
                     stopLocationTracking();
-                    // Update UI to show reset PDR values
-                    positionX.setText(getString(R.string.x, "0.0"));
-                    positionY.setText(getString(R.string.y, "0.0"));
                     requestingLocationUpdates = false;
                     if (currentLocationMarker != null) {
                         currentLocationMarker.setDraggable(true);  // Enable marker dragging
@@ -861,12 +837,6 @@ public class StartLocationFragment extends Fragment {
                     NavDirections action = StartLocationFragmentDirections.actionStartLocationFragmentToCorrectionFragment();
                     Navigation.findNavController(view).navigate(action);
                 }
-
-
-                // Navigate to the RecordingFragment
-//                NavDirections action = StartLocationFragmentDirections.actionStartLocationFragmentToRecordingFragment();
-//                Navigation.findNavController(view).navigate(action);
-
 
             }
         });
@@ -1041,12 +1011,6 @@ public class StartLocationFragment extends Fragment {
                         } else {
                             pdrMarker.setPosition(newPdrPoint);
                         }
-
-                        // Optionally update UI elements with the new position
-                        String latStr = String.format(Locale.getDefault(), "Lat: %.6f", newLatitude);
-                        String lngStr = String.format(Locale.getDefault(), "Lng: %.6f", newLongitude);
-                        positionX.setText(latStr); // Consider renaming for clarity
-                        positionY.setText(lngStr); // Consider renaming for clarity
 
                     }
                 });

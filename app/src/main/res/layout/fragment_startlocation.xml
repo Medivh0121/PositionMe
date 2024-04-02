@@ -23,15 +23,22 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/startLocationDone"
-                android:layout_width="111dp"
-                android:layout_height="48dp"
+                android:layout_width="110dp"
+                android:layout_height="50dp"
+                android:background="@drawable/button_start_recording"
+                android:padding="10dp"
+                android:text="Start"
+                android:textColor="#0B57D0"
                 android:layout_marginBottom="16dp"
-                android:text="@string/setLocation"
-                android:textSize="20sp"
-                app:icon="@drawable/ic_baseline_add_location_24"
-                app:iconSize="25dp"
+                android:elevation="0dp"
+                app:backgroundTint="@null"
+                app:icon="@drawable/ic_direction"
+                app:iconGravity="textStart"
+                app:iconPadding="10dp"
+                app:iconSize="20dp"
+                app:iconTint="@null"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent" />
@@ -45,214 +52,99 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnChangeMapType"
-                android:layout_width="38dp"
-                android:layout_height="39dp"
-                android:layout_margin="16dp"
+                android:layout_width="45dp"
+                android:layout_height="45dp"
                 android:background="@drawable/button_round_outline"
-                app:icon="@drawable/layer_icon"
                 app:backgroundTint="@null"
-                app:iconTint="@null"
-                app:iconSize="25dp"
-                app:iconPadding="0dp"
+                app:icon="@drawable/layer_icon"
                 app:iconGravity="textStart"
+                app:iconPadding="0dp"
+                app:iconSize="25dp"
+                app:iconTint="@null"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="1.0"
+                app:layout_constraintHorizontal_bias="0.95"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.08" />
+                app:layout_constraintVertical_bias="0.1" />
 
+
+            <!-- Down Button -->
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnChangePathType"
-                android:layout_width="38dp"
-                android:layout_height="39dp"
-                android:layout_margin="16dp"
+                android:layout_width="45dp"
+                android:layout_height="45dp"
                 android:background="@drawable/button_round_outline"
-                app:icon="@drawable/ic_path"
                 app:backgroundTint="@null"
-                app:iconTint="@null"
-                app:iconSize="25dp"
-                app:iconPadding="0dp"
+                app:icon="@drawable/ic_path"
                 app:iconGravity="textStart"
+                app:iconPadding="0dp"
+                app:iconSize="25dp"
+                app:iconTint="@null"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.02"
+                app:layout_constraintHorizontal_bias="0.95"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.08" />
-
+                app:layout_constraintVertical_bias="0.200" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonFloorUp"
-                android:layout_width="38dp"
-                android:layout_height="38dp"
-                android:layout_marginEnd="16dp"
-                android:layout_marginBottom="80dp"
-                android:background="@drawable/button_square_outline"
+                android:layout_width="45dp"
+                android:layout_height="45dp"
+                android:layout_marginTop="300dp"
+                android:background="@drawable/button_round_outline"
                 android:visibility="gone"
+                app:backgroundTint="@null"
                 app:icon="@drawable/upstair_icon"
                 app:iconGravity="textStart"
                 app:iconPadding="0dp"
-                app:iconSize="30dp"
-                app:layout_constraintBottom_toBottomOf="parent"
+                app:iconSize="40dp"
+                app:iconTint="@null"
                 app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.95"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
-            <!-- Down Button -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonFloorDown"
-                android:layout_width="38dp"
-                android:layout_height="38dp"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/button_square_outline"
+                android:layout_width="45dp"
+                android:layout_height="45dp"
+                android:layout_marginTop="15dp"
+                android:background="@drawable/button_round_outline"
                 android:visibility="gone"
+                app:backgroundTint="@null"
                 app:icon="@drawable/down_stair_icon"
                 app:iconGravity="textStart"
                 app:iconPadding="0dp"
-                app:iconSize="30dp"
+                app:iconSize="40dp"
+                app:iconTint="@null"
                 app:layout_constraintEnd_toEndOf="@+id/buttonFloorUp"
                 app:layout_constraintTop_toBottomOf="@+id/buttonFloorUp" />
 
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="15dp"
+            android:layout_marginTop="62dp"
+            android:background="@drawable/switch_backgound"
+            android:padding="8dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
-            <!-- Altitude CardView -->
+        <Switch
+            android:id="@+id/switchAutoFloorMap"
+            android:layout_width="100dp"
+            android:layout_height="40dp"
+            android:text="Auto Floor"
+            android:textSize="14dp"
+            android:textColor="#5B5D5D"
+            android:textStyle="bold"
+            android:thumb="@drawable/custom_thumb"
+            android:track="@drawable/custom_track" />
 
-            <androidx.cardview.widget.CardView
-                android:id="@+id/cardViewAltitude"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                app:cardBackgroundColor="#ADD8E6"
-                app:cardCornerRadius="8dp"
-                app:cardElevation="4dp"
-                app:layout_constraintBottom_toTopOf="@+id/cardViewLatitude"
-                app:layout_constraintStart_toStartOf="@+id/cardViewLatitude">
-
-                <TextView
-                    android:id="@+id/altitudeTextView"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:padding="4dp"
-                    android:text="ALT: " />
-            </androidx.cardview.widget.CardView>
-
-            <!-- Latitude CardView -->
-            <androidx.cardview.widget.CardView
-                android:id="@+id/cardViewLatitude"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                app:cardBackgroundColor="#ADD8E6"
-                app:cardCornerRadius="8dp"
-                app:cardElevation="4dp"
-                app:layout_constraintBottom_toTopOf="@+id/cardViewLongitude"
-                app:layout_constraintStart_toStartOf="@+id/cardViewLongitude">
-
-                <TextView
-                    android:id="@+id/latitudeTextView"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:padding="4dp"
-                    android:text="LAT: " />
-            </androidx.cardview.widget.CardView>
-
-            <!-- Longitude CardView -->
-            <androidx.cardview.widget.CardView
-                android:id="@+id/cardViewLongitude"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                app:cardBackgroundColor="#ADD8E6"
-                app:cardCornerRadius="8dp"
-                app:cardElevation="4dp"
-                app:layout_constraintBottom_toTopOf="@+id/cardViewAccuracy"
-                app:layout_constraintStart_toStartOf="@+id/cardViewAccuracy">
-
-                <TextView
-                    android:id="@+id/longitudeTextView"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:padding="4dp"
-                    android:text="LNT: " />
-            </androidx.cardview.widget.CardView>
-
-            <!-- Accuracy CardView -->
-            <androidx.cardview.widget.CardView
-                android:id="@+id/cardViewAccuracy"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_marginEnd="16dp"
-                android:layout_marginBottom="32dp"
-                app:cardBackgroundColor="#ADD8E6"
-                app:cardCornerRadius="8dp"
-                app:cardElevation="4dp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/startLocationDone">
-
-                <TextView
-                    android:id="@+id/accuracyTextView"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:padding="4dp"
-                    android:text="ACC: " />
-            </androidx.cardview.widget.CardView>
-
-            <!-- pdrY CardView -->
-            <androidx.cardview.widget.CardView
-                android:id="@+id/pdrYTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                app:cardBackgroundColor="#ADD8E6"
-                app:cardCornerRadius="8dp"
-                app:cardElevation="4dp"
-                app:layout_constraintBottom_toTopOf="@+id/cardViewLatitude"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent">
-
-                <TextView
-                    android:id="@+id/currentYPos"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:padding="4dp"
-                    android:text="pdrY: " />
-            </androidx.cardview.widget.CardView>
-
-            <!-- pdrX CardView -->
-            <androidx.cardview.widget.CardView
-                android:id="@+id/pdrXTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                app:cardBackgroundColor="#ADD8E6"
-                app:cardCornerRadius="8dp"
-                app:cardElevation="4dp"
-                app:layout_constraintBottom_toTopOf="@+id/pdrYTextView"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent">
-
-                <TextView
-                    android:id="@+id/currentXPos"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:padding="4dp"
-                    android:text="pdrX: " />
-            </androidx.cardview.widget.CardView>
-
-            <Switch
-                android:id="@+id/switchAutoFloorMap"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_marginTop="19dp"
-                android:checked="true"
-                android:text="Auto Floor Map"
-                app:layout_constraintStart_toStartOf="parent"
-                android:visibility="gone"
-                app:layout_constraintTop_toBottomOf="@+id/btnChangePathType" />
-
+    </FrameLayout>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

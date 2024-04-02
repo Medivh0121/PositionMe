@@ -25,13 +25,16 @@ public class UIFunctions {
     private final GoogleMap mMap;
     private BottomSheetDialog bottomLayerDialog;
     private BottomSheetDialog bottomPathDialog;
-    private Polyline fusionPath;
-    private Polyline wifiPath;
-    private Polyline gnssPath;
-    private Polyline pdrPath;
-    private View view;
+    private final Polyline fusionPath;
+    private final Polyline wifiPath;
+    private final Polyline gnssPath;
+    private final Polyline pdrPath;
+    private final View view;
 
-    private Marker pdrMarker, fusionMarker, gnssMarker, wifiMarker;
+    private final Marker pdrMarker;
+    private final Marker fusionMarker;
+    private final Marker gnssMarker;
+    private final Marker wifiMarker;
 
 
     private static final String PREFS_NAME = "MapTypePrefs";
