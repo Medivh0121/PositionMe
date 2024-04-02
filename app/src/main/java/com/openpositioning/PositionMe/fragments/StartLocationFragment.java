@@ -16,10 +16,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -67,7 +64,6 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.openpositioning.PositionMe.sensors.SensorTypes;
 import com.openpositioning.PositionMe.sensors.WifiFPManager;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -97,14 +93,14 @@ public class StartLocationFragment extends Fragment {
     // UI Components
     private Button button; // Button to navigate to the next fragment and save the location.
     private Button buttonFloorUp, buttonFloorDown; // Buttons for navigating between floors in indoor maps.
-    private TextView elevationTextView, latitudeTextView, longitudeTextView, accuracyTextView;
+    private TextView elevationTextView, latitudeTextView, longitudeTextView;
 
     // Map Components
     private GoogleMap mMap; // Instance of GoogleMap.
     private Marker currentLocationMarker; // Previously used to display the current location on the map. Disabled in the current version.
     private Polyline gnssPath; // Polyline to draw the path on the map.
     private GroundOverlay currentOverlay; // Overlay for displaying indoor maps.
-    private List<LatLng> pathPoints = new ArrayList<>(); // Points to construct the path polyline.
+    private List<LatLng> GPSpathPoints = new ArrayList<>(); // Points to construct the path polyline.
     private float zoom = 19f; // Zoom level for Google Maps.
 
     //Evaluation Components
@@ -140,11 +136,6 @@ public class StartLocationFragment extends Fragment {
 
     private Handler refreshDataHandler;
     float[] pdrValues;
-    private Polyline userPathPolyline;
-    private PolylineOptions polylineOptions;
-    private float[] userLocation, gnssLocation;
-    private static final float APPROX_METERS_PER_DEGREE_LATITUDE = 111000;
-    private float previousPosX, previousPosY;
 
     private List<LatLng> pdrPathPoint = new ArrayList<>(); // Points to construct the path polyline.
     private List<LatLng> fusionPathPoint = new ArrayList<>();
@@ -171,6 +162,7 @@ public class StartLocationFragment extends Fragment {
 
     private Marker pdrMarker, fusedMarker, gnssMarker, wifiMarker; // Class member to keep track of the marker
 
+    private String latitudeStr, longitudeStr, altitudeStr;
 
 
     /**
@@ -334,23 +326,25 @@ public class StartLocationFragment extends Fragment {
 
                     // Adding the current location to the path and updating the map.
                     newGPSPoint = new LatLng(location.getLatitude(), location.getLongitude());
-                    pathPoints.add(newGPSPoint);
-                    gnssPath.setPoints(pathPoints);
-//
-//                    if (gnssMarker == null) {
-//                        gnssMarker = mMap.addMarker(new MarkerOptions()
-//                                .position(newGPSPoint)
-//                                .visible(true)
-//                                .icon(BitmapDescriptorFactory.fromBitmap(getBitmapFromVector(getContext(), R.drawable.ic_baseline_navigation_blue)))
-//                                .anchor(0.5f, 0.5f));
-//                    } else {
-//                        gnssMarker.setPosition(newGPSPoint);
-//                    }
+                    GPSpathPoints.add(newGPSPoint);
+                    gnssPath.setPoints(GPSpathPoints);
+
+
 
                     estimateCoord = particleFilter.particleFilter(newWifiPoint, newGPSPoint, newPdrPoint);
                     newFusionPoint = estimateCoord;
                     fusionPathPoint.add(newFusionPoint);
                     fusionPath.setPoints(fusionPathPoint);
+
+//                    String altitudeStr = String.format(Locale.getDefault(), "ALT: %.2f m", sensorFusion.getElevation());
+//                    String latitudeStr = String.format(Locale.getDefault(), "LAT: %.5f", newFusionPoint.latitude);
+//                    String longitudeStr = String.format(Locale.getDefault(), "LNT.: %.5f", newFusionPoint.longitude);
+//
+
+                     altitudeStr = String.format(Locale.getDefault(), "ALT: %.2f m", sensorFusion.getElevation());
+                     latitudeStr = String.format(Locale.getDefault(), "LAT: %.5f", newFusionPoint.latitude);
+                     longitudeStr = String.format(Locale.getDefault(), "LNT.: %.5f", newFusionPoint.longitude);
+
 
                     if (fusedMarker == null) {
                         fusedMarker = mMap.addMarker(new MarkerOptions()
@@ -706,6 +700,10 @@ public class StartLocationFragment extends Fragment {
         ((AppCompatActivity) getActivity()).getSupportActionBar().hide();
         View rootView = inflater.inflate(R.layout.fragment_startlocation, container, false);
 
+        elevationTextView = rootView.findViewById(R.id.layer_latitude_text);
+        latitudeTextView = rootView.findViewById(R.id.layer_longitude_text);
+        longitudeTextView = rootView.findViewById(R.id.layer_altitude_text);
+
 
         //Obtain the start position from the GPS data from the SensorFusion class
 //        startPosition = sensorFusion.getGNSSLatitude(false);
@@ -770,9 +768,6 @@ public class StartLocationFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         buttonFloorUp = view.findViewById(R.id.buttonFloorUp);
         buttonFloorDown = view.findViewById(R.id.buttonFloorDown);
-
-        this.previousPosX = 0f;
-        this.previousPosY = 0f;
 
         switchAutoFloorMap = view.findViewById(R.id.switchAutoFloorMap);
         switchAutoFloorMap.setChecked(isAutoFloorMapEnabled); // Set the switch to reflect the initial state of auto floor map updates
@@ -847,7 +842,8 @@ public class StartLocationFragment extends Fragment {
         if (btnGetLocationInfo != null) {
             btnGetLocationInfo.setOnClickListener(v -> {
                 if (uiFunctions != null) {
-                    uiFunctions.showLocationInfo();
+
+                    uiFunctions.showLocationInfo(altitudeStr, latitudeStr, longitudeStr);
                 }
             });}
 
@@ -857,76 +853,6 @@ public class StartLocationFragment extends Fragment {
 
     }
 
-    private static final int LOCATION_PERMISSION_REQUEST_CODE = 101;
-
-    private void initializeSpinner(View view) {
-        Spinner mySpinner = view.findViewById(R.id.spinner);
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(getContext(),
-                R.array.spinner_items, android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        mySpinner.setAdapter(adapter);
-
-        mySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-
-                // Hide all paths initially
-                if (gnssPath != null) {
-                    gnssPath.setVisible(false);
-                }
-                if (pdrPath != null) {
-                    pdrPath.setVisible(false);
-                }
-                if (fusionPath != null) {
-                    fusionPath.setVisible(false);
-                }
-                if (wifiPath != null) {
-                    wifiPath.setVisible(false);
-                }
-
-                switch (position) {
-                    case 0:
-                        if (fusionPath != null) {
-                            fusionPath.setVisible(true);
-                        }
-                        Log.d("TEST1", "Fusion");
-                        break;
-                    case 1:
-                        if (gnssPath != null) {
-                            gnssPath.setVisible(true);
-                        }
-                        Log.d("TEST1", "GNSS");
-                        break;
-                    case 2:
-                        if (pdrPath != null) {
-                            pdrPath.setVisible(true);
-                        }
-                        Log.d("TEST1", "PDR");
-                        break;
-                    case 3:
-                        if (fusionPath != null) {
-                            pdrPath.setVisible(true);
-                            gnssPath.setVisible(true);
-                            fusionPath.setVisible(true);
-                            wifiPath.setVisible(true);
-                        }
-                        Log.d("TEST1", "WIFI");
-                        break;
-                }
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                // Optional: Handle the case where nothing is selected
-            }
-        });
-
-        // 设置默认选项为第一个
-        mySpinner.setSelection(0);
-    }
-
-
-
     /**
      * Initiates location tracking by requesting location updates from the FusedLocationProviderClient.
      * Clears any previously stored path points to ensure a fresh start for new tracking.
@@ -934,9 +860,10 @@ public class StartLocationFragment extends Fragment {
      */
     @SuppressLint("MissingPermission")
     private void startLocationTracking() {
-        pathPoints.clear(); // Clear the list at the end of tracking
+        GPSpathPoints.clear(); // Clear the list at the end of tracking
         pdrPathPoint.clear();
         fusionPathPoint.clear();
+        wifiPathPoint.clear();
         Log.d("LocationTracking", "Starting location tracking");
 
         // Request location updates
@@ -952,9 +879,10 @@ public class StartLocationFragment extends Fragment {
      */
     private void stopLocationTracking() {
         Log.d("LocationTracking", "Stopping location tracking");
-        pathPoints.clear(); // Clear the list at the end of tracking
+        GPSpathPoints.clear(); // Clear the list at the end of tracking
         pdrPathPoint.clear();
         fusionPathPoint.clear();
+        wifiPathPoint.clear();
 
         if (fusedLocationClient != null && locationCallback != null) {
             fusedLocationClient.removeLocationUpdates(locationCallback);
@@ -1120,7 +1048,7 @@ public class StartLocationFragment extends Fragment {
             gnssPath = mMap.addPolyline(new PolylineOptions()
                     .width(10)
                     .color(Color.BLUE)
-                    .addAll(pathPoints) // Add existing points, if any
+                    .addAll(GPSpathPoints) // Add existing points, if any
                     .visible(false) // Ensure it's visible
                     .zIndex(1000)); // Ensure it's drawn above other map elements
         }

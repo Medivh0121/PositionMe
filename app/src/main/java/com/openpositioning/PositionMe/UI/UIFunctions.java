@@ -55,7 +55,7 @@ public class UIFunctions {
         this.pdrMarker = PDRMarker;
     }
 
-    public void showLocationInfo() {
+    public void showLocationInfo(String altitudeStr, String latitudeStr, String longitudeStr) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
 
         if (bottomInfoDialog == null || !bottomInfoDialog.isShowing()) {
@@ -64,6 +64,7 @@ public class UIFunctions {
             bottomInfoDialog.setContentView(bottomLayerView);
 
             LinearLayout layerLong = bottomLayerView.findViewById(R.id.layer_longitude);
+
             TextView textLong = bottomLayerView.findViewById(R.id.layer_longitude_text);
 
             LinearLayout layerLan = bottomLayerView.findViewById(R.id.layer_latitude);
@@ -71,6 +72,10 @@ public class UIFunctions {
 
             LinearLayout layerAlt = bottomLayerView.findViewById(R.id.layer_altitude);
             TextView textAlt = bottomLayerView.findViewById(R.id.layer_altitude_text);
+
+            textAlt.setText(altitudeStr);
+            textLan.setText(latitudeStr);
+            textLong.setText(longitudeStr);
 
             bottomInfoDialog.show();
 
