@@ -343,7 +343,7 @@ public class StartLocationFragment extends Fragment {
                     if (gnssMarker == null) {
                         gnssMarker = mMap.addMarker(new MarkerOptions()
                                 .position(newGPSPoint)
-                                .visible(false)
+                                .visible(true)
                                 .icon(BitmapDescriptorFactory.fromBitmap(getBitmapFromVector(getContext(), R.drawable.ic_baseline_navigation_red)))
                                 .anchor(0.5f, 0.5f));
                     } else {
@@ -1004,7 +1004,7 @@ public class StartLocationFragment extends Fragment {
                             pdrMarker = mMap.addMarker(new MarkerOptions()
                                     .position(newPdrPoint)
                                     .rotation(dircInDegrees)
-                                    .visible(false)
+                                    .visible(true)
                                     .icon(BitmapDescriptorFactory.fromBitmap(getBitmapFromVector(getContext(), R.drawable.ic_baseline_navigation_blue)))
                                     .anchor(0.5f, 0.5f));
                         } else {
@@ -1054,7 +1054,7 @@ public class StartLocationFragment extends Fragment {
                             if (wifiMarker == null) {
                                 wifiMarker = mMap.addMarker(new MarkerOptions()
                                         .position(newWifiPoint)
-                                        .visible(false)
+                                        .visible(true)
                                         .icon(BitmapDescriptorFactory.fromBitmap(getBitmapFromVector(getContext(), R.drawable.ic_baseline_navigation_yellow)))
                                         .anchor(0.5f, 0.5f));
                             } else {

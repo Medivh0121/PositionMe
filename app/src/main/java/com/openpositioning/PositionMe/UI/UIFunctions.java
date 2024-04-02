@@ -187,19 +187,7 @@ public class UIFunctions {
                 };
 
                 layoutFusion.setTag("Fusion");
-                layoutFusion.setOnClickListener(v3 -> {
-                    String tag = "Fusion";
-                    boolean isSelected = !prefs.getBoolean(tag, false);
-                    if (!isSelected || (isSelected && moreThanOnePathSelected(prefs))) {
-                        isSelected = !isSelected;
-                        prefs.edit().putBoolean(tag, isSelected).apply();
-                        toggleSelectionBasedOnTag(tag, isSelected);
-                        setPathVisibility(tag, isSelected);
-                        fusionMarker.setVisible(true);
-                    }
-
-                    // 可以添加更多的逻辑，如更新UI，显示提示等
-                });
+                layoutFusion.setOnClickListener(clickListener);
 
                 layoutWifi.setTag("Wifi");
                 layoutWifi.setOnClickListener(clickListener);

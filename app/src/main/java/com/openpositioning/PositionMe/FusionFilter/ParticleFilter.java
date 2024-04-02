@@ -8,7 +8,9 @@ public class ParticleFilter {
     private List<Particle> particles;
     private Random random = new Random();
     private static final int NUM_PARTICLES = 1000;
-    private double sensorNoise = 0.0000045; // Adjust this value based on your sensor's accuracy.
+    private double wifiNoise = 0.0000035; // Adjust this value based on your sensor's accuracy.
+    private double gnssNoise = 0.0000095;
+    private double pdrNoise = 0.0000095;
 
     public ParticleFilter(LatLng initialPosition) {
         this.particles = new ArrayList<>();
@@ -51,14 +53,14 @@ public class ParticleFilter {
         }
 
         if (wifiCoord != null && isValidCoordinate(wifiCoord)) {
-            updateWeights(wifiCoord, 0.0000070);
+            updateWeights(wifiCoord, wifiNoise);
         }
         // Update weights based on GNSS and PDR measurements
         if (gnssCoord != null && isValidCoordinate(gnssCoord)) {
-            updateWeights(gnssCoord, sensorNoise);
+            updateWeights(gnssCoord, gnssNoise);
         }
         if (pdrCoord != null && isValidCoordinate(pdrCoord)) {
-            updateWeights(pdrCoord, sensorNoise);
+            updateWeights(pdrCoord, pdrNoise);
         }
 
         normalizeWeights();
