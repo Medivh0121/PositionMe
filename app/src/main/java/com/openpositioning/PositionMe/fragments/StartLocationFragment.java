@@ -41,9 +41,12 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.Priority;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.Dash;
+import com.google.android.gms.maps.model.Gap;
 import com.google.android.gms.maps.model.GroundOverlay;
 import com.google.android.gms.maps.model.GroundOverlayOptions;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.PatternItem;
 import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
@@ -1011,14 +1014,18 @@ public class StartLocationFragment extends Fragment {
         super.onResume();
     }
 
-    private void initBuilding(){
+    private void initBuilding() {
+        // Define a dash pattern for the lines
+        List<PatternItem> pattern = Arrays.asList(new Dash(4), new Gap(2));
+
         for (Building building : buildings) {
             if (building.isComplexShape()) {
                 // Handle complex shapes using a list of LatLng points
                 PolygonOptions polygonOptions = new PolygonOptions()
                         .addAll(building.getBoundaryPoints())
-                        .strokeColor(Color.parseColor("#00ffa5"))
-                        .strokeWidth(10);
+                        .strokeColor(Color.parseColor("#EA4335"))
+                        .strokeWidth(3)
+                        .strokePattern(pattern); // Apply the dash pattern to the polygon
                 mMap.addPolygon(polygonOptions);
             } else if (building.getBounds() != null) {
                 // Extract corners from the building's bounds
@@ -1034,20 +1041,22 @@ public class StartLocationFragment extends Fragment {
                         .add(southeastCorner)
                         .add(southwestCorner)
                         .add(northwestCorner) // Close the loop
-                        .color(Color.parseColor("#FFA500"))
-                        .width(10); // Example width
+                        .color(Color.parseColor("#EA4335"))
+                        .width(3) // Example width
+                        .pattern(pattern); // Apply the dash pattern to the polyline
 
                 mMap.addPolyline(buildingBoundsOutline);
             }
         }
     }
 
+
     private void initPath(){
         //Draw GPS
         if (gnssPath == null) {
             gnssPath = mMap.addPolyline(new PolylineOptions()
                     .width(10)
-                    .color(Color.BLUE)
+                    .color(Color.parseColor("#3C79DE"))
                     .addAll(GPSpathPoints) // Add existing points, if any
                     .visible(false) // Ensure it's visible
                     .zIndex(1000)); // Ensure it's drawn above other map elements
@@ -1057,7 +1066,7 @@ public class StartLocationFragment extends Fragment {
         if (pdrPath == null) {
             pdrPath = mMap.addPolyline(new PolylineOptions()
                     .width(10)
-                    .color(Color.RED)
+                    .color(Color.parseColor("#D43C30"))
                     .addAll(pdrPathPoint) // Add existing points, if any
                     .visible(false) // Ensure it's visible
                     .zIndex(1000)); // Ensure it's drawn above other map elements
@@ -1067,7 +1076,7 @@ public class StartLocationFragment extends Fragment {
         if (fusionPath == null) {
             fusionPath = mMap.addPolyline(new PolylineOptions()
                     .width(10)
-                    .color(Color.GREEN)
+                    .color(Color.parseColor("#2F994C"))
                     .addAll(fusionPathPoint) // Add existing points, if any
                     .visible(true) // Ensure it's visible
                     .zIndex(1000)); // Ensure it's drawn above other map elements
@@ -1077,7 +1086,7 @@ public class StartLocationFragment extends Fragment {
         if (wifiPath == null) {
             wifiPath = mMap.addPolyline(new PolylineOptions()
                     .width(10)
-                    .color(Color.YELLOW)
+                    .color(Color.parseColor("#E3AA05"))
                     .addAll(wifiPathPoint) // Add existing points, if any
                     .visible(false) // Ensure it's visible
                     .zIndex(1000)); // Ensure it's drawn above other map elements
