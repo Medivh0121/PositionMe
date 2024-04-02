@@ -47,6 +47,7 @@ import com.google.maps.android.PolyUtil;
 import com.openpositioning.PositionMe.FusionFilter.ParticleFilter;
 import com.openpositioning.PositionMe.R;
 import com.openpositioning.PositionMe.ServerCommunications;
+import com.openpositioning.PositionMe.UI.UIFunctions;
 import com.openpositioning.PositionMe.sensors.LocationResponse;
 import com.openpositioning.PositionMe.sensors.SensorFusion;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -150,6 +151,8 @@ public class StartLocationFragment extends Fragment {
     private BottomSheetDialog bottomLayerDialog = null;
     private View bottomLayerView;
 
+    private UIFunctions uiFunctions;
+
 
     /**
      * Public Constructor for the class.
@@ -183,6 +186,7 @@ public class StartLocationFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
+
         this.sensorFusion = SensorFusion.getInstance();
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
@@ -193,7 +197,6 @@ public class StartLocationFragment extends Fragment {
         serverCommunications = new ServerCommunications(context);
 
         ParticleFilter particleFilter = new ParticleFilter(new LatLng(55.944405, -3.186835));
-
 
         this.refreshDataHandler = new Handler();
 
@@ -666,7 +669,6 @@ public class StartLocationFragment extends Fragment {
         longitudeTextView = rootView.findViewById(R.id.longitudeTextView);
         accuracyTextView = rootView.findViewById(R.id.accuracyTextView);
 
-
         //Obtain the start position from the GPS data from the SensorFusion class
         startPosition = sensorFusion.getGNSSLatitude(false);
         //If not location found zoom the map out
@@ -771,6 +773,9 @@ public class StartLocationFragment extends Fragment {
                             .zIndex(1000)); // Ensure it's drawn above other map elements
                 }
 
+                // Init ui functions
+                uiFunctions = new UIFunctions(getContext(), mMap, rootView);
+
             }
         });
         return rootView;
@@ -792,8 +797,6 @@ public class StartLocationFragment extends Fragment {
         this.previousPosX = 0f;
         this.previousPosY = 0f;
 
-        showMapTypeDialog(view);
-        showPathTypeDialog(view);
 
         // Add button to begin PDR recording and go to recording fragment.
         this.button = (Button) getView().findViewById(R.id.startLocationDone);
@@ -843,11 +846,22 @@ public class StartLocationFragment extends Fragment {
                 // Navigate to the RecordingFragment
 //                NavDirections action = StartLocationFragmentDirections.actionStartLocationFragmentToRecordingFragment();
 //                Navigation.findNavController(view).navigate(action);
-
-
             }
         });
 
+
+        Button buttonChangeMapType = (Button) getView().findViewById(R.id.btnChangeMapType);
+        buttonChangeMapType.setOnClickListener(view2 -> {
+            if (uiFunctions != null) {
+                uiFunctions.showMapTypeDialog();
+            }
+        });
+        Button buttonChangePathType = (Button) getView().findViewById(R.id.btnChangePathType);
+        buttonChangePathType.setOnClickListener(view2 -> {
+            if (uiFunctions != null) {
+                uiFunctions.showPathTypeDialog();
+            }
+        });
 
         buttonFloorUp.setOnClickListener(v -> nextFloor());
         buttonFloorDown.setOnClickListener(v -> previousFloor());
@@ -915,158 +929,6 @@ public class StartLocationFragment extends Fragment {
 //        // 设置默认选项为第一个
 //        spinner.setSelection(0);
 //    }
-
-    private void showPathTypeDialog(View view) {
-        Button btnChangeMapType = view.findViewById(R.id.btnChangePathType);
-        btnChangeMapType.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (bottomPathDialog == null || !bottomPathDialog.isShowing()) {
-                    bottomPathDialog = new BottomSheetDialog(getContext());
-                    View bottomPathView = getLayoutInflater().inflate(R.layout.item_path_bottom_dialog, null);
-                    bottomPathDialog.setContentView(bottomPathView);
-
-                    LinearLayout layoutFusion = bottomPathView.findViewById(R.id.layoutFusion);
-                    ImageView imageFusion = bottomPathView.findViewById(R.id.imageFusion);
-                    TextView textFusion = bottomPathView.findViewById(R.id.textFusion);
-                    final boolean[] isSelectedFusion = {true}; // 初始化为选中状态
-                    toggleSelection(imageFusion, textFusion, isSelectedFusion[0]);
-
-                    LinearLayout layoutWifi = bottomPathView.findViewById(R.id.layoutWifi);
-                    ImageView imageWifi = bottomPathView.findViewById(R.id.imageWifi);
-                    TextView textWifi = bottomPathView.findViewById(R.id.textWifi);
-                    final boolean[] isSelectedWifi = {false};
-
-                    LinearLayout layoutGNSS = bottomPathView.findViewById(R.id.layoutGNSS);
-                    ImageView imageGNSS = bottomPathView.findViewById(R.id.imageGNSS);
-                    TextView textGNSS = bottomPathView.findViewById(R.id.textGNSS);
-                    final boolean[] isSelectedGNSS = {false};
-
-                    LinearLayout layoutPDR = bottomPathView.findViewById(R.id.layoutPDR);
-                    ImageView imagePDR = bottomPathView.findViewById(R.id.imagePDR);
-                    TextView textPDR = bottomPathView.findViewById(R.id.textPDR);
-                    final boolean[] isSelectedPDR = {false};
-
-                    layoutFusion.setOnClickListener(view1 -> {
-                        if (!isSelectedFusion[0] || isSelectedWifi[0] || isSelectedGNSS[0] || isSelectedPDR[0]) {
-                            isSelectedFusion[0] = !isSelectedFusion[0];
-                            toggleSelection(imageFusion, textFusion, isSelectedFusion[0]);
-                        }
-                    });
-
-                    layoutWifi.setOnClickListener(view1 -> {
-                        isSelectedWifi[0] = !isSelectedWifi[0];
-                        toggleSelection(imageWifi, textWifi, isSelectedWifi[0]);
-                    });
-
-                    layoutGNSS.setOnClickListener(view1 -> {
-                        isSelectedGNSS[0] = !isSelectedGNSS[0];
-                        toggleSelection(imageGNSS, textGNSS, isSelectedGNSS[0]);
-                    });
-
-                    layoutPDR.setOnClickListener(view1 -> {
-                        isSelectedPDR[0] = !isSelectedPDR[0];
-                        toggleSelection(imagePDR, textPDR, isSelectedPDR[0]);
-                    });
-                }
-
-                bottomPathDialog.show();
-            }
-        });
-    }
-
-    private void toggleSelection(ImageView imageView, TextView textView, boolean isSelected) {
-        if (isSelected) {
-            imageView.setBackgroundResource(R.drawable.textview_border);
-            textView.setTextColor(Color.parseColor("#1A73E8"));
-        } else {
-            imageView.setBackground(null);
-            textView.setTextColor(Color.BLACK);  // Use default color
-        }
-    }
-
-
-
-
-
-
-    private void showMapTypeDialog(View view) {
-        Button btnChangeMapType = view.findViewById(R.id.btnChangeMapType);
-        btnChangeMapType.setOnClickListener(new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            // 使用局部变量检查 BottomSheetDialog 是否已存在并正在显示
-            if (bottomLayerDialog == null || !bottomLayerDialog.isShowing()) {
-                bottomLayerDialog = new BottomSheetDialog(getContext());
-                bottomLayerView = getLayoutInflater().inflate(R.layout.item_layer_bottom_dialog, null);
-                bottomLayerDialog.setContentView(bottomLayerView);
-
-                LinearLayout layerDefault = bottomLayerView.findViewById(R.id.layer_default);
-                ImageView viewDefault = bottomLayerView.findViewById(R.id.layer_default_view);
-                TextView textDefault = bottomLayerView.findViewById(R.id.layer_default_text);
-
-                LinearLayout layerSatellite = bottomLayerView.findViewById(R.id.layer_satellite);
-                ImageView viewSatellite = bottomLayerView.findViewById(R.id.layer_satellite_view);
-                TextView textSatellite = bottomLayerView.findViewById(R.id.layer_satellite_text);
-
-                LinearLayout layerTerrain = bottomLayerView.findViewById(R.id.layer_terrain);
-                ImageView viewTerrain = bottomLayerView.findViewById(R.id.layer_terrain_view);
-                TextView textTerrain = bottomLayerView.findViewById(R.id.layer_terrain_text);
-
-                // Method to clear borders
-                Runnable clearBorders = () -> {
-                    viewDefault.setBackground(null);
-                    viewSatellite.setBackground(null);
-                    viewTerrain.setBackground(null);
-
-                    // 重置所有TextView颜色
-                    textDefault.setTextColor(Color.parseColor("#3C4043"));
-                    textSatellite.setTextColor(Color.parseColor("#3C4043"));
-                    textTerrain.setTextColor(Color.parseColor("#3C4043"));
-                };
-
-                layerDefault.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-                        clearBorders.run();
-                        viewDefault.setBackgroundResource(R.drawable.textview_border);
-                        textDefault.setTextColor((Color.parseColor("#1A73E8")));
-
-                    }
-                });
-
-                layerSatellite.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
-                        clearBorders.run();
-                        viewSatellite.setBackgroundResource(R.drawable.textview_border);
-                        textSatellite.setTextColor((Color.parseColor("#1A73E8")));
-                    }
-                });
-
-                layerTerrain.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        mMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
-                        clearBorders.run();
-                        viewTerrain.setBackgroundResource(R.drawable.textview_border);
-                        textTerrain.setTextColor((Color.parseColor("#1A73E8")));
-                    }
-                });}
-
-            if (bottomPathDialog != null) {
-                bottomPathDialog.show();
-            }
-
-                bottomLayerDialog.show();
-            }
-        });
-    }
-
-
-
 
     /**
      * Initiates location tracking by requesting location updates from the FusedLocationProviderClient.
