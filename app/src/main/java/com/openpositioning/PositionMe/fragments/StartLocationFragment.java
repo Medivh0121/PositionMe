@@ -53,6 +53,7 @@ import com.google.maps.android.PolyUtil;
 import com.openpositioning.PositionMe.FusionFilter.ParticleFilter;
 import com.openpositioning.PositionMe.R;
 import com.openpositioning.PositionMe.ServerCommunications;
+import com.openpositioning.PositionMe.UI.UIFunctions;
 import com.openpositioning.PositionMe.sensors.LocationResponse;
 import com.openpositioning.PositionMe.sensors.SensorFusion;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -159,6 +160,8 @@ public class StartLocationFragment extends Fragment {
     private LatLng newGPSPoint;
     private LatLng estimateCoord;
     private ParticleFilter particleFilter;
+
+    private UIFunctions uiFunctions;
 
     private Marker pdrMarker, fusedMarker, gnssMarker, wifiMarker; // Class member to keep track of the marker
 
@@ -774,6 +777,8 @@ public class StartLocationFragment extends Fragment {
                 });
 
 
+                uiFunctions = new UIFunctions(getContext(), mMap, rootView, fusionPath, wifiPath, gnssPath, pdrPath );
+
                 //Draw GPS
                 if (gnssPath == null) {
                     gnssPath = mMap.addPolyline(new PolylineOptions()
@@ -909,6 +914,22 @@ public class StartLocationFragment extends Fragment {
             }
         });
 
+        Button btnShowMapType = view.findViewById(R.id.btnChangeMapType);
+        if (btnShowMapType != null) {
+            btnShowMapType.setOnClickListener(v -> {
+                if (uiFunctions != null) {
+                    uiFunctions.showMapTypeDialog();
+                }
+            });}
+
+        Button btnChangePathType = view.findViewById(R.id.btnChangePathType);
+        if (btnShowMapType != null) {
+            btnShowMapType.setOnClickListener(v -> {
+                if (uiFunctions != null) {
+                    uiFunctions.showPathTypeDialog();
+                }
+            });}
+
 
         buttonFloorUp.setOnClickListener(v -> nextFloor());
         buttonFloorDown.setOnClickListener(v -> previousFloor());
@@ -917,71 +938,71 @@ public class StartLocationFragment extends Fragment {
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 101;
 
-//    private void initializeSpinner(View view) {
-//        Spinner mySpinner = view.findViewById(R.id.spinner);
-//        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(getContext(),
-//                R.array.spinner_items, android.R.layout.simple_spinner_item);
-//        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-//        mySpinner.setAdapter(adapter);
-//
-//        mySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-//            @Override
-//            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-//
-//                // Hide all paths initially
-//                if (gnssPath != null) {
-//                    gnssPath.setVisible(false);
-//                }
-//                if (pdrPath != null) {
-//                    pdrPath.setVisible(false);
-//                }
-//                if (fusionPath != null) {
-//                    fusionPath.setVisible(false);
-//                }
-//                if (wifiPath != null) {
-//                    wifiPath.setVisible(false);
-//                }
-//
-//                switch (position) {
-//                    case 0:
-//                        if (fusionPath != null) {
-//                            fusionPath.setVisible(true);
-//                        }
-//                        Log.d("TEST1", "Fusion");
-//                        break;
-//                    case 1:
-//                        if (gnssPath != null) {
-//                            gnssPath.setVisible(true);
-//                        }
-//                        Log.d("TEST1", "GNSS");
-//                        break;
-//                    case 2:
-//                        if (pdrPath != null) {
-//                            pdrPath.setVisible(true);
-//                        }
-//                        Log.d("TEST1", "PDR");
-//                        break;
-//                    case 3:
-//                        if (fusionPath != null) {
-//                            pdrPath.setVisible(true);
-//                            gnssPath.setVisible(true);
-//                            fusionPath.setVisible(true);
-//                            wifiPath.setVisible(true);
-//                        }
-//                        Log.d("TEST1", "WIFI");
-//                        break;
-//                }
-//            }
-//
-//            @Override
-//            public void onNothingSelected(AdapterView<?> parent) {
-//                // Optional: Handle the case where nothing is selected
-//            }
-//        });
-//
-//        // 设置默认选项为第一个
-//        mySpinner.setSelection(0);
-//    }
+    private void initializeSpinner(View view) {
+        Spinner mySpinner = view.findViewById(R.id.spinner);
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(getContext(),
+                R.array.spinner_items, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        mySpinner.setAdapter(adapter);
+
+        mySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+
+                // Hide all paths initially
+                if (gnssPath != null) {
+                    gnssPath.setVisible(false);
+                }
+                if (pdrPath != null) {
+                    pdrPath.setVisible(false);
+                }
+                if (fusionPath != null) {
+                    fusionPath.setVisible(false);
+                }
+                if (wifiPath != null) {
+                    wifiPath.setVisible(false);
+                }
+
+                switch (position) {
+                    case 0:
+                        if (fusionPath != null) {
+                            fusionPath.setVisible(true);
+                        }
+                        Log.d("TEST1", "Fusion");
+                        break;
+                    case 1:
+                        if (gnssPath != null) {
+                            gnssPath.setVisible(true);
+                        }
+                        Log.d("TEST1", "GNSS");
+                        break;
+                    case 2:
+                        if (pdrPath != null) {
+                            pdrPath.setVisible(true);
+                        }
+                        Log.d("TEST1", "PDR");
+                        break;
+                    case 3:
+                        if (fusionPath != null) {
+                            pdrPath.setVisible(true);
+                            gnssPath.setVisible(true);
+                            fusionPath.setVisible(true);
+                            wifiPath.setVisible(true);
+                        }
+                        Log.d("TEST1", "WIFI");
+                        break;
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                // Optional: Handle the case where nothing is selected
+            }
+        });
+
+        // 设置默认选项为第一个
+        mySpinner.setSelection(0);
+    }
 
 
 

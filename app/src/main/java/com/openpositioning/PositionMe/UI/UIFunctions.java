@@ -11,8 +11,12 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Polyline;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.openpositioning.PositionMe.R;
+
+import java.util.List;
 
 public class UIFunctions {
 
@@ -20,15 +24,23 @@ public class UIFunctions {
     private final GoogleMap mMap;
     private BottomSheetDialog bottomLayerDialog;
     private BottomSheetDialog bottomPathDialog;
+    private Polyline fusionPath;
+    private Polyline wifiPath;
+    private Polyline gnssPath;
+    private Polyline pdrPath;
     private View view;
 
     private static final String PREFS_NAME = "MapTypePrefs";
     private static final String PREF_KEY_MAP_TYPE = "mapType";
 
-    public UIFunctions(Context context, GoogleMap mMap, View view) {
+    public UIFunctions(Context context, GoogleMap mMap, View view, Polyline fusionPath, Polyline WifiPath, Polyline GNSSPath, Polyline PDRPath) {
         this.context = context;
         this.mMap = mMap;
         this.view = view;
+        this.fusionPath = fusionPath;
+        this.wifiPath = WifiPath;
+        this.gnssPath = GNSSPath;
+        this.pdrPath = PDRPath;
     }
 
     public void showMapTypeDialog() {
@@ -132,31 +144,28 @@ public class UIFunctions {
                 ImageView imagePDR = bottomPathView.findViewById(R.id.imagePDR);
                 TextView textPDR = bottomPathView.findViewById(R.id.textPDR);
 
-                // Load saved selections or default values
                 SharedPreferences prefs = context.getSharedPreferences("PathTypeSelection", Context.MODE_PRIVATE);
-                boolean isSelectedFusion = prefs.getBoolean("Fusion", true);  // Default to true
+                boolean isSelectedFusion = prefs.getBoolean("Fusion", true);
                 boolean isSelectedWifi = prefs.getBoolean("Wifi", false);
                 boolean isSelectedGNSS = prefs.getBoolean("GNSS", false);
                 boolean isSelectedPDR = prefs.getBoolean("PDR", false);
 
-                // Apply initial selection state
                 toggleSelection(imageFusion, textFusion, isSelectedFusion);
                 toggleSelection(imageWifi, textWifi, isSelectedWifi);
                 toggleSelection(imageGNSS, textGNSS, isSelectedGNSS);
                 toggleSelection(imagePDR, textPDR, isSelectedPDR);
 
-                // Click listeners for each layout
+                setPathVisibility("Fusion", isSelectedFusion);
+                setPathVisibility("Wifi", isSelectedWifi);
+                setPathVisibility("GNSS", isSelectedGNSS);
+                setPathVisibility("PDR", isSelectedPDR);
+
                 View.OnClickListener clickListener = view1 -> {
                     String tag = (String) view1.getTag();
-                    boolean isSelected = prefs.getBoolean(tag, false);
-                    // Check if at least one other is selected before unselecting
-                    if (isSelected && !isOnlySelected(tag, prefs)) {
-                        isSelected = false;
-                    } else if (!isSelected) {
-                        isSelected = true;
-                    }
+                    boolean isSelected = !prefs.getBoolean(tag, false);
                     prefs.edit().putBoolean(tag, isSelected).apply();
                     toggleSelectionBasedOnTag(tag, isSelected);
+                    setPathVisibility(tag, isSelected);
                 };
 
                 layoutFusion.setTag("Fusion");
@@ -174,6 +183,19 @@ public class UIFunctions {
 
             bottomPathDialog.show();
         });
+    }
+
+    private void setPathVisibility(String tag, boolean isVisible) {
+        // Assuming these are already initialized elsewhere
+        if (tag.equals("Fusion") && fusionPath != null) {
+            fusionPath.setVisible(isVisible);
+        } else if (tag.equals("Wifi") && wifiPath != null) {
+            wifiPath.setVisible(isVisible);
+        } else if (tag.equals("GNSS") && gnssPath != null) {
+            gnssPath.setVisible(isVisible);
+        } else if (tag.equals("PDR") && pdrPath != null) {
+            pdrPath.setVisible(isVisible);
+        }
     }
 
     private void toggleSelection(ImageView imageView, TextView textView, boolean isSelected) {
@@ -207,6 +229,9 @@ public class UIFunctions {
             toggleSelection(imageView, textView, isSelected);
         }
     }
+
+
+
     private boolean isOnlySelected(String tag, SharedPreferences prefs) {
         // Convert boolean to integer (1 for true, 0 for false) and calculate the sum
         int selectedCount = (prefs.getBoolean("Fusion", false) ? 1 : 0) +
