@@ -335,24 +335,20 @@ public class StartLocationFragment extends Fragment {
 
                     fetchLocationAndAddMarker();
 
-
                     // Adding the current location to the path and updating the map.
                     newGPSPoint = new LatLng(location.getLatitude(), location.getLongitude());
                     pathPoints.add(newGPSPoint);
                     gnssPath.setPoints(pathPoints);
 
-
-
                     if (gnssMarker == null) {
                         gnssMarker = mMap.addMarker(new MarkerOptions()
                                 .position(newGPSPoint)
+                                .visible(false)
                                 .icon(BitmapDescriptorFactory.fromBitmap(getBitmapFromVector(getContext(), R.drawable.ic_baseline_navigation_red)))
                                 .anchor(0.5f, 0.5f));
                     } else {
                         gnssMarker.setPosition(newGPSPoint);
                     }
-
-
 
                     estimateCoord = particleFilter.particleFilter(newWifiPoint, newGPSPoint, newPdrPoint);
                     newFusionPoint = estimateCoord;
@@ -362,6 +358,7 @@ public class StartLocationFragment extends Fragment {
                     if (fusedMarker == null) {
                         fusedMarker = mMap.addMarker(new MarkerOptions()
                                 .position(newFusionPoint)
+                                .visible(true)
                                 .icon(BitmapDescriptorFactory.fromBitmap(getBitmapFromVector(getContext(), R.drawable.ic_baseline_navigation_green)))
                                 .anchor(0.5f, 0.5f));
                     } else {
@@ -369,8 +366,6 @@ public class StartLocationFragment extends Fragment {
                     }
 
                     Log.d("FusedLocation", String.format(Locale.getDefault(), "New Lat: %.6f, New Lng: %.6f", newFusionPoint.latitude, newFusionPoint.longitude));
-
-
 
                     // Determining building presence and managing indoor map display.
                     manageIndoorMapDisplay(location);
@@ -737,35 +732,7 @@ public class StartLocationFragment extends Fragment {
 
 
                 // Draw Polyline for Each Building
-                for (Building building : buildings) {
-                    if (building.isComplexShape()) {
-                        // Handle complex shapes using a list of LatLng points
-                        PolygonOptions polygonOptions = new PolygonOptions()
-                                .addAll(building.getBoundaryPoints())
-                                .strokeColor(Color.parseColor("#00ffa5"))
-                                .strokeWidth(10);
-                        mMap.addPolygon(polygonOptions);
-                    } else if (building.getBounds() != null) {
-                        // Extract corners from the building's bounds
-                        LatLng southwestCorner = building.getBounds().southwest;
-                        LatLng northeastCorner = building.getBounds().northeast;
-                        LatLng southeastCorner = new LatLng(southwestCorner.latitude, northeastCorner.longitude);
-                        LatLng northwestCorner = new LatLng(northeastCorner.latitude, southwestCorner.longitude);
-
-                        // Create a rectangle to represent the building bounds
-                        PolylineOptions buildingBoundsOutline = new PolylineOptions()
-                                .add(northwestCorner)
-                                .add(northeastCorner)
-                                .add(southeastCorner)
-                                .add(southwestCorner)
-                                .add(northwestCorner) // Close the loop
-                                .color(Color.parseColor("#FFA500"))
-                                .width(10); // Example width
-
-                        mMap.addPolyline(buildingBoundsOutline);
-                    }
-                }
-
+                initBuilding();
 
                 // Instead of adding a marker and setting a drag listener, listen for location updates to center the map
                 fusedLocationClient.getLastLocation().addOnSuccessListener(requireActivity(), location -> {
@@ -776,56 +743,15 @@ public class StartLocationFragment extends Fragment {
                     }
                 });
 
+                initPath();
 
-                uiFunctions = new UIFunctions(getContext(), mMap, rootView, fusionPath, wifiPath, gnssPath, pdrPath );
-
-                //Draw GPS
-                if (gnssPath == null) {
-                    gnssPath = mMap.addPolyline(new PolylineOptions()
-                            .width(10)
-                            .color(Color.RED)
-                            .addAll(pathPoints) // Add existing points, if any
-                            .visible(true) // Ensure it's visible
-                            .zIndex(1000)); // Ensure it's drawn above other map elements
-                }
-
-                //Draw pdr
-                if (pdrPath == null) {
-                    pdrPath = mMap.addPolyline(new PolylineOptions()
-                            .width(10)
-                            .color(Color.BLUE)
-                            .addAll(pdrPathPoint) // Add existing points, if any
-                            .visible(true) // Ensure it's visible
-                            .zIndex(1000)); // Ensure it's drawn above other map elements
-                }
-
-
-
-                //Draw fusionpath
-                if (fusionPath == null) {
-                    fusionPath = mMap.addPolyline(new PolylineOptions()
-                            .width(10)
-                            .color(Color.GREEN)
-                            .addAll(fusionPathPoint) // Add existing points, if any
-                            .visible(true) // Ensure it's visible
-                            .zIndex(1000)); // Ensure it's drawn above other map elements
-                }
-
-                //Draw wifipath
-                if (wifiPath == null) {
-                    wifiPath = mMap.addPolyline(new PolylineOptions()
-                            .width(10)
-                            .color(Color.YELLOW)
-                            .addAll(wifiPathPoint) // Add existing points, if any
-                            .visible(true) // Ensure it's visible
-                            .zIndex(1000)); // Ensure it's drawn above other map elements
-                }
-
-
+                uiFunctions = new UIFunctions(getContext(), mMap, rootView, fusionPath, wifiPath, gnssPath, pdrPath,fusedMarker, wifiMarker, gnssMarker, pdrMarker);
             }
         });
         return rootView;
     }
+
+
 
     /**
      * {@inheritDoc}
@@ -923,8 +849,8 @@ public class StartLocationFragment extends Fragment {
             });}
 
         Button btnChangePathType = view.findViewById(R.id.btnChangePathType);
-        if (btnShowMapType != null) {
-            btnShowMapType.setOnClickListener(v -> {
+        if (btnChangePathType != null) {
+            btnChangePathType.setOnClickListener(v -> {
                 if (uiFunctions != null) {
                     uiFunctions.showPathTypeDialog();
                 }
@@ -1078,6 +1004,7 @@ public class StartLocationFragment extends Fragment {
                             pdrMarker = mMap.addMarker(new MarkerOptions()
                                     .position(newPdrPoint)
                                     .rotation(dircInDegrees)
+                                    .visible(false)
                                     .icon(BitmapDescriptorFactory.fromBitmap(getBitmapFromVector(getContext(), R.drawable.ic_baseline_navigation_blue)))
                                     .anchor(0.5f, 0.5f));
                         } else {
@@ -1109,7 +1036,6 @@ public class StartLocationFragment extends Fragment {
     }
 
     private void fetchLocationAndAddMarker() {
-
         Executors.newSingleThreadExecutor().submit(() -> {
             try {
                 String wifiFingerprintJson = wifiFPManager.createWifiFingerprintJson();
@@ -1128,6 +1054,7 @@ public class StartLocationFragment extends Fragment {
                             if (wifiMarker == null) {
                                 wifiMarker = mMap.addMarker(new MarkerOptions()
                                         .position(newWifiPoint)
+                                        .visible(false)
                                         .icon(BitmapDescriptorFactory.fromBitmap(getBitmapFromVector(getContext(), R.drawable.ic_baseline_navigation_yellow)))
                                         .anchor(0.5f, 0.5f));
                             } else {
@@ -1153,9 +1080,6 @@ public class StartLocationFragment extends Fragment {
                 && longitude >= -180 && longitude <= 180;
     }
 
-
-
-
     @Override
     public void onPause() {
         // Stop the Runnable when the Fragment/Activity is not visible to save resources
@@ -1168,5 +1092,78 @@ public class StartLocationFragment extends Fragment {
         // Do not automatically start the Runnable here if control is intended via button click
         // refreshDataHandler.postDelayed(pdrUpdateTask, 500);
         super.onResume();
+    }
+
+    private void initBuilding(){
+        for (Building building : buildings) {
+            if (building.isComplexShape()) {
+                // Handle complex shapes using a list of LatLng points
+                PolygonOptions polygonOptions = new PolygonOptions()
+                        .addAll(building.getBoundaryPoints())
+                        .strokeColor(Color.parseColor("#00ffa5"))
+                        .strokeWidth(10);
+                mMap.addPolygon(polygonOptions);
+            } else if (building.getBounds() != null) {
+                // Extract corners from the building's bounds
+                LatLng southwestCorner = building.getBounds().southwest;
+                LatLng northeastCorner = building.getBounds().northeast;
+                LatLng southeastCorner = new LatLng(southwestCorner.latitude, northeastCorner.longitude);
+                LatLng northwestCorner = new LatLng(northeastCorner.latitude, southwestCorner.longitude);
+
+                // Create a rectangle to represent the building bounds
+                PolylineOptions buildingBoundsOutline = new PolylineOptions()
+                        .add(northwestCorner)
+                        .add(northeastCorner)
+                        .add(southeastCorner)
+                        .add(southwestCorner)
+                        .add(northwestCorner) // Close the loop
+                        .color(Color.parseColor("#FFA500"))
+                        .width(10); // Example width
+
+                mMap.addPolyline(buildingBoundsOutline);
+            }
+        }
+    }
+
+    private void initPath(){
+        //Draw GPS
+        if (gnssPath == null) {
+            gnssPath = mMap.addPolyline(new PolylineOptions()
+                    .width(10)
+                    .color(Color.RED)
+                    .addAll(pathPoints) // Add existing points, if any
+                    .visible(false) // Ensure it's visible
+                    .zIndex(1000)); // Ensure it's drawn above other map elements
+        }
+
+        //Draw pdr
+        if (pdrPath == null) {
+            pdrPath = mMap.addPolyline(new PolylineOptions()
+                    .width(10)
+                    .color(Color.BLUE)
+                    .addAll(pdrPathPoint) // Add existing points, if any
+                    .visible(false) // Ensure it's visible
+                    .zIndex(1000)); // Ensure it's drawn above other map elements
+        }
+
+        //Draw fusionpath
+        if (fusionPath == null) {
+            fusionPath = mMap.addPolyline(new PolylineOptions()
+                    .width(10)
+                    .color(Color.GREEN)
+                    .addAll(fusionPathPoint) // Add existing points, if any
+                    .visible(true) // Ensure it's visible
+                    .zIndex(1000)); // Ensure it's drawn above other map elements
+        }
+
+        //Draw wifipath
+        if (wifiPath == null) {
+            wifiPath = mMap.addPolyline(new PolylineOptions()
+                    .width(10)
+                    .color(Color.YELLOW)
+                    .addAll(wifiPathPoint) // Add existing points, if any
+                    .visible(false) // Ensure it's visible
+                    .zIndex(1000)); // Ensure it's drawn above other map elements
+        }
     }
 }

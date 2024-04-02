@@ -12,6 +12,7 @@ import android.widget.TextView;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.openpositioning.PositionMe.R;
@@ -30,10 +31,13 @@ public class UIFunctions {
     private Polyline pdrPath;
     private View view;
 
+    private Marker pdrMarker, fusionMarker, gnssMarker, wifiMarker;
+
+
     private static final String PREFS_NAME = "MapTypePrefs";
     private static final String PREF_KEY_MAP_TYPE = "mapType";
 
-    public UIFunctions(Context context, GoogleMap mMap, View view, Polyline fusionPath, Polyline WifiPath, Polyline GNSSPath, Polyline PDRPath) {
+    public UIFunctions(Context context, GoogleMap mMap, View view, Polyline fusionPath, Polyline WifiPath, Polyline GNSSPath, Polyline PDRPath, Marker fusionMarker, Marker WifiMarker, Marker GNSSMarker, Marker PDRMarker) {
         this.context = context;
         this.mMap = mMap;
         this.view = view;
@@ -41,7 +45,12 @@ public class UIFunctions {
         this.wifiPath = WifiPath;
         this.gnssPath = GNSSPath;
         this.pdrPath = PDRPath;
+        this.fusionMarker = fusionMarker;
+        this.wifiMarker = WifiMarker;
+        this.gnssMarker = GNSSMarker;
+        this.pdrMarker = PDRMarker;
     }
+
 
     public void showMapTypeDialog() {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
@@ -128,6 +137,7 @@ public class UIFunctions {
                 View bottomPathView = LayoutInflater.from(context).inflate(R.layout.item_path_bottom_dialog, null);
                 bottomPathDialog.setContentView(bottomPathView);
 
+                // Define path type layouts, images, and texts
                 LinearLayout layoutFusion = bottomPathView.findViewById(R.id.layoutFusion);
                 ImageView imageFusion = bottomPathView.findViewById(R.id.imageFusion);
                 TextView textFusion = bottomPathView.findViewById(R.id.textFusion);
@@ -145,6 +155,8 @@ public class UIFunctions {
                 TextView textPDR = bottomPathView.findViewById(R.id.textPDR);
 
                 SharedPreferences prefs = context.getSharedPreferences("PathTypeSelection", Context.MODE_PRIVATE);
+
+                // Set initial state and visibility based on saved preferences or defaults
                 boolean isSelectedFusion = prefs.getBoolean("Fusion", true);
                 boolean isSelectedWifi = prefs.getBoolean("Wifi", false);
                 boolean isSelectedGNSS = prefs.getBoolean("GNSS", false);
@@ -160,16 +172,34 @@ public class UIFunctions {
                 setPathVisibility("GNSS", isSelectedGNSS);
                 setPathVisibility("PDR", isSelectedPDR);
 
+                // Click listeners for each layout
                 View.OnClickListener clickListener = view1 -> {
                     String tag = (String) view1.getTag();
-                    boolean isSelected = !prefs.getBoolean(tag, false);
-                    prefs.edit().putBoolean(tag, isSelected).apply();
-                    toggleSelectionBasedOnTag(tag, isSelected);
-                    setPathVisibility(tag, isSelected);
+                    boolean isSelected = prefs.getBoolean(tag, false);
+
+                    // Toggle selection only if another path is visible or if we're selecting the item
+                    if (!isSelected || (isSelected && moreThanOnePathSelected(prefs))) {
+                        isSelected = !isSelected;
+                        prefs.edit().putBoolean(tag, isSelected).apply();
+                        toggleSelectionBasedOnTag(tag, isSelected);
+                        setPathVisibility(tag, isSelected);
+                    }
                 };
 
                 layoutFusion.setTag("Fusion");
-                layoutFusion.setOnClickListener(clickListener);
+                layoutFusion.setOnClickListener(v3 -> {
+                    String tag = "Fusion";
+                    boolean isSelected = !prefs.getBoolean(tag, false);
+                    if (!isSelected || (isSelected && moreThanOnePathSelected(prefs))) {
+                        isSelected = !isSelected;
+                        prefs.edit().putBoolean(tag, isSelected).apply();
+                        toggleSelectionBasedOnTag(tag, isSelected);
+                        setPathVisibility(tag, isSelected);
+                        fusionMarker.setVisible(true);
+                    }
+
+                    // 可以添加更多的逻辑，如更新UI，显示提示等
+                });
 
                 layoutWifi.setTag("Wifi");
                 layoutWifi.setOnClickListener(clickListener);
@@ -185,62 +215,82 @@ public class UIFunctions {
         });
     }
 
-    private void setPathVisibility(String tag, boolean isVisible) {
-        // Assuming these are already initialized elsewhere
-        if (tag.equals("Fusion") && fusionPath != null) {
-            fusionPath.setVisible(isVisible);
-        } else if (tag.equals("Wifi") && wifiPath != null) {
-            wifiPath.setVisible(isVisible);
-        } else if (tag.equals("GNSS") && gnssPath != null) {
-            gnssPath.setVisible(isVisible);
-        } else if (tag.equals("PDR") && pdrPath != null) {
-            pdrPath.setVisible(isVisible);
+    public void setPathVisibility(String tag, boolean isVisible) {
+
+        switch (tag) {
+            case "Fusion":
+                if (fusionPath != null) fusionPath.setVisible(isVisible);
+                if (fusionMarker != null) fusionMarker.setVisible(isVisible);
+                break;
+            case "Wifi":
+                if (wifiPath != null) wifiPath.setVisible(isVisible);
+                if (wifiMarker != null) wifiMarker.setVisible(isVisible);
+                break;
+            case "GNSS":
+                if (gnssPath != null) gnssPath.setVisible(isVisible);
+                if (gnssMarker != null) gnssMarker.setVisible(isVisible);
+                break;
+            case "PDR":
+                if (pdrPath != null) pdrPath.setVisible(isVisible);
+                if (pdrMarker != null) pdrMarker.setVisible(isVisible);
+                break;
+        }
+    }
+
+
+    private boolean moreThanOnePathSelected(SharedPreferences prefs) {
+        return (prefs.getBoolean("Fusion", false) ? 1 : 0) +
+                (prefs.getBoolean("Wifi", false) ? 1 : 0) +
+                (prefs.getBoolean("GNSS", false) ? 1 : 0) +
+                (prefs.getBoolean("PDR", false) ? 1 : 0) > 1;
+    }
+
+    private void toggleSelectionBasedOnTag(String tag, boolean isSelected) {
+        ImageView imageView = bottomPathDialog.findViewById(getImageIdByTag(tag));
+        TextView textView = bottomPathDialog.findViewById(getTextIdByTag(tag));
+        toggleSelection(imageView, textView, isSelected);
+    }
+
+    private int getImageIdByTag(String tag) {
+        switch (tag) {
+            case "Fusion":
+                return R.id.imageFusion;
+            case "Wifi":
+                return R.id.imageWifi;
+            case "GNSS":
+                return R.id.imageGNSS;
+            case "PDR":
+                return R.id.imagePDR;
+            default:
+                return 0;
+        }
+    }
+
+    private int getTextIdByTag(String tag) {
+        switch (tag) {
+            case "Fusion":
+                return R.id.textFusion;
+            case "Wifi":
+                return R.id.textWifi;
+            case "GNSS":
+                return R.id.textGNSS;
+            case "PDR":
+                return R.id.textPDR;
+            default:
+                return 0;
         }
     }
 
     private void toggleSelection(ImageView imageView, TextView textView, boolean isSelected) {
-        if (isSelected) {
-            imageView.setBackgroundResource(R.drawable.textview_border);
-            textView.setTextColor(Color.parseColor("#1A73E8"));
-        } else {
-            imageView.setBackground(null);
-            textView.setTextColor(Color.BLACK);
-        }
-    }
-
-    private void toggleSelectionBasedOnTag(String tag, boolean isSelected) {
-        ImageView imageView = null;
-        TextView textView = null;
-        if (tag.equals("Fusion")) {
-            imageView = bottomPathDialog.findViewById(R.id.imageFusion);
-            textView = bottomPathDialog.findViewById(R.id.textFusion);
-        } else if (tag.equals("Wifi")) {
-            imageView = bottomPathDialog.findViewById(R.id.imageWifi);
-            textView = bottomPathDialog.findViewById(R.id.textWifi);
-        } else if (tag.equals("GNSS")) {
-            imageView = bottomPathDialog.findViewById(R.id.imageGNSS);
-            textView = bottomPathDialog.findViewById(R.id.textGNSS);
-        } else if (tag.equals("PDR")) {
-            imageView = bottomPathDialog.findViewById(R.id.imagePDR);
-            textView = bottomPathDialog.findViewById(R.id.textPDR);
-        }
-
         if (imageView != null && textView != null) {
-            toggleSelection(imageView, textView, isSelected);
+            if (isSelected) {
+                imageView.setBackgroundResource(R.drawable.textview_border);
+                textView.setTextColor(Color.parseColor("#1A73E8"));
+            } else {
+                imageView.setBackground(null);
+                textView.setTextColor(Color.BLACK);
+            }
         }
-    }
-
-
-
-    private boolean isOnlySelected(String tag, SharedPreferences prefs) {
-        // Convert boolean to integer (1 for true, 0 for false) and calculate the sum
-        int selectedCount = (prefs.getBoolean("Fusion", false) ? 1 : 0) +
-                (prefs.getBoolean("Wifi", false) ? 1 : 0) +
-                (prefs.getBoolean("GNSS", false) ? 1 : 0) +
-                (prefs.getBoolean("PDR", false) ? 1 : 0);
-
-        // Check if the current item is selected and it's the only one
-        return selectedCount == 1 && prefs.getBoolean(tag, false);
     }
 
 
