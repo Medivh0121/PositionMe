@@ -166,8 +166,8 @@ public class StartLocationFragment extends Fragment {
 
     private Marker pdrMarker, fusedMarker, gnssMarker, wifiMarker; // Class member to keep track of the marker
 
-    private String latitudeStr, longitudeStr, altitudeStr;
-
+    private String latitudeStr, longitudeStr, altitudeStr, accuracyStr;
+    private float[] acc = new float[1];
 
     /**
      * Public Constructor for the class.
@@ -350,9 +350,13 @@ public class StartLocationFragment extends Fragment {
                     fusionPathPoint.add(newFusionPoint);
                     fusionPath.setPoints(fusionPathPoint);
 
-                    altitudeStr = String.format(Locale.getDefault(), "ALT: %.2f m", sensorFusion.getElevation());
+                    altitudeStr = String.format(Locale.getDefault(), "ALT: %.5f m", sensorFusion.getElevation());
                     latitudeStr = String.format(Locale.getDefault(), "LAT: %.5f", newFusionPoint.latitude);
-                    longitudeStr = String.format(Locale.getDefault(), "LNT.: %.5f", newFusionPoint.longitude);
+                    longitudeStr = String.format(Locale.getDefault(), "LNT: %.5f", newFusionPoint.longitude);
+
+
+                    Location.distanceBetween(newGPSPoint.latitude, newGPSPoint.longitude, estimateCoord.latitude, estimateCoord.longitude, acc);
+                    accuracyStr = String.format(Locale.getDefault(), "ACC: %.5f m", acc[0]);
 
 
                     if (fusedMarker == null) {
@@ -372,7 +376,7 @@ public class StartLocationFragment extends Fragment {
 
                     // Determining building presence and managing indoor map display.
                     if (isAutoFloorMapEnabled) {
-                        floorCount = determineFloor(elevationVal);
+                        floorCount = determineFloor(elevationVal) + 1;
                         showFloor(currentBuilding,floorCount);
                         buttonFloorUp.setVisibility(View.GONE);
                         buttonFloorDown.setVisibility(View.GONE);
@@ -671,8 +675,8 @@ public class StartLocationFragment extends Fragment {
     // Determines the floor number based on elevation data
     private int determineFloor(float elevation) {
         // Assuming ground floor starts at 0 meters and each floor is 3 meters high
-        int floor = (int) (elevation - elevationOffSet) / 5;
-        if (floor < 5 && floor > 0)
+        int floor = (int) (elevation - elevationVal) / 5;
+        if (floor >= -1 && floor < 5)
             return floor;  // This will floor the division result to get the current floor
         else
             return 0;
@@ -799,7 +803,8 @@ public class StartLocationFragment extends Fragment {
                 // Set the start location obtained
                 sensorFusion.setStartGNSSLatitude(startPosition);
 
-                particleFilter = new ParticleFilter(new LatLng(55.922912958036505, -3.1739726568930804));
+                particleFilter = new ParticleFilter(new LatLng(55.9228710663431, -3.173981658261807));
+                //particleFilter = new ParticleFilter(new LatLng(startPosition[0], startPosition[1]));
 
                 refreshDataHandler.post(pdrUpdateTask);
 
@@ -848,7 +853,7 @@ public class StartLocationFragment extends Fragment {
         if (btnGetLocationInfo != null) {
             btnGetLocationInfo.setOnClickListener(v -> {
                 if (uiFunctions != null) {
-                    uiFunctions.showLocationInfo(altitudeStr, latitudeStr, longitudeStr);
+                    uiFunctions.showLocationInfo(altitudeStr, latitudeStr, longitudeStr, accuracyStr);
                 }
             });}
 
