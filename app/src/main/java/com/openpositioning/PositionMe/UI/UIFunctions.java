@@ -193,10 +193,10 @@ public class UIFunctions {
                 boolean isSelectedGNSS = prefs.getBoolean("GNSS", false);
                 boolean isSelectedPDR = prefs.getBoolean("PDR", false);
 
-                toggleSelection(imageFusion, textFusion, isSelectedFusion);
-                toggleSelection(imageWifi, textWifi, isSelectedWifi);
-                toggleSelection(imageGNSS, textGNSS, isSelectedGNSS);
-                toggleSelection(imagePDR, textPDR, isSelectedPDR);
+                toggleSelection(imageFusion, textFusion, isSelectedFusion, "Fusion");
+                toggleSelection(imageWifi, textWifi, isSelectedWifi, "Wifi");
+                toggleSelection(imageGNSS, textGNSS, isSelectedGNSS, "GNSS");
+                toggleSelection(imagePDR, textPDR, isSelectedPDR, "PDR");
 
                 setPathVisibility("Fusion", isSelectedFusion);
                 setPathVisibility("Wifi", isSelectedWifi);
@@ -267,7 +267,7 @@ public class UIFunctions {
     private void toggleSelectionBasedOnTag(String tag, boolean isSelected) {
         ImageView imageView = bottomPathDialog.findViewById(getImageIdByTag(tag));
         TextView textView = bottomPathDialog.findViewById(getTextIdByTag(tag));
-        toggleSelection(imageView, textView, isSelected);
+        toggleSelection(imageView, textView, isSelected, tag);
     }
 
     private int getImageIdByTag(String tag) {
@@ -300,12 +300,24 @@ public class UIFunctions {
         }
     }
 
-    private void toggleSelection(ImageView imageView, TextView textView, boolean isSelected) {
+    private void toggleSelection(ImageView imageView, TextView textView, boolean isSelected, String type) {
         if (imageView != null && textView != null) {
             if (isSelected) {
-                imageView.setBackgroundResource(R.drawable.textview_border);
-                textView.setTextColor(Color.parseColor("#1A73E8"));
-            } else {
+                if (type.equals("Fusion")) {
+                    imageView.setBackgroundResource(R.drawable.textview_border_fusion);
+                    textView.setTextColor(Color.parseColor("#2F994C"));
+                } else if (type.equals("Wifi")) {
+                    imageView.setBackgroundResource(R.drawable.textview_border_wifi);
+                    textView.setTextColor(Color.parseColor("#E3AA05"));
+                } else if (type.equals("GNSS")) {
+                    imageView.setBackgroundResource(R.drawable.textview_border_gnss);
+                    textView.setTextColor(Color.parseColor("#3C79DE"));
+                } else if (type.equals("PDR")) {
+                    imageView.setBackgroundResource(R.drawable.textview_border_pdr);
+                    textView.setTextColor(Color.parseColor("#D43C30"));
+                }
+                }
+            else {
                 imageView.setBackground(null);
                 textView.setTextColor(Color.BLACK);
             }
@@ -313,5 +325,5 @@ public class UIFunctions {
     }
 
 
-}
+    }
 

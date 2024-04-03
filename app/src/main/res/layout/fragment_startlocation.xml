@@ -27,12 +27,12 @@
                 android:id="@+id/startLocationDone"
                 android:layout_width="110dp"
                 android:layout_height="50dp"
+                android:layout_marginBottom="20dp"
                 android:background="@drawable/button_start_recording"
+                android:elevation="4dp"
                 android:padding="10dp"
                 android:text="Start"
                 android:textColor="#0B57D0"
-                android:layout_marginBottom="20dp"
-                android:elevation="4dp"
                 app:backgroundTint="@null"
                 app:icon="@drawable/ic_direction"
                 app:iconGravity="textStart"
@@ -67,7 +67,7 @@
                 app:layout_constraintHorizontal_bias="0.95"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.1" />
+                app:layout_constraintVertical_bias="0.05" />
 
 
             <!-- Down Button -->
@@ -89,7 +89,7 @@
                 app:layout_constraintHorizontal_bias="0.95"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.200" />
+                app:layout_constraintVertical_bias="0.150" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnShowLocation"
@@ -108,7 +108,7 @@
                 app:layout_constraintHorizontal_bias="0.95"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.300" />
+                app:layout_constraintVertical_bias="0.250" />
 
 
             <com.google.android.material.button.MaterialButton
@@ -117,8 +117,8 @@
                 android:layout_height="45dp"
                 android:layout_marginTop="300dp"
                 android:background="@drawable/button_round_outline"
-                android:visibility="gone"
                 android:elevation="4dp"
+                android:visibility="gone"
                 app:backgroundTint="@null"
                 app:icon="@drawable/upstair_icon"
                 app:iconGravity="textStart"
@@ -136,8 +136,8 @@
                 android:layout_height="45dp"
                 android:layout_marginTop="15dp"
                 android:background="@drawable/button_round_outline"
-                android:visibility="gone"
                 android:elevation="4dp"
+                android:visibility="gone"
                 app:backgroundTint="@null"
                 app:icon="@drawable/down_stair_icon"
                 app:iconGravity="textStart"
@@ -147,29 +147,30 @@
                 app:layout_constraintEnd_toEndOf="@+id/buttonFloorUp"
                 app:layout_constraintTop_toBottomOf="@+id/buttonFloorUp" />
 
-        <FrameLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="15dp"
-            android:layout_marginTop="62dp"
-            android:background="@drawable/switch_backgound"
-            android:padding="8dp"
-            android:elevation="4dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
 
-        <Switch
-            android:id="@+id/switchAutoFloorMap"
-            android:layout_width="100dp"
-            android:layout_height="40dp"
-            android:text="Auto Floor"
-            android:textSize="14dp"
-            android:textColor="#5B5D5D"
-            android:textStyle="bold"
-            android:thumb="@drawable/custom_thumb"
-            android:track="@drawable/custom_track" />
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="15dp"
+                android:layout_marginTop="32dp"
+                android:background="@drawable/switch_backgound"
+                android:elevation="4dp"
+                android:padding="8dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
 
-    </FrameLayout>
+                <Switch
+                    android:id="@+id/switchAutoFloorMap"
+                    android:layout_width="100dp"
+                    android:layout_height="40dp"
+                    android:text="Auto Floor"
+                    android:textColor="#5B5D5D"
+                    android:textSize="14dp"
+                    android:textStyle="bold"
+                    android:thumb="@drawable/custom_thumb"
+                    android:track="@drawable/custom_track" />
+
+            </FrameLayout>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

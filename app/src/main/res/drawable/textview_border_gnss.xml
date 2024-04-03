@@ -1,0 +1,7 @@
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@android:color/transparent"/> <!-- 设置背景颜色为透明 -->
+    <stroke
+        android:width="3dp"
+        android:color="#3C79DE"/>
+    <corners android:radius="20dp"/>
+</shape>

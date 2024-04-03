@@ -144,7 +144,7 @@ public class CorrectionFragment extends Fragment {
         //Display average step count on UI
 
         // Add button to navigate back to home screen.
-        this.button = (Button) getView().findViewById(R.id.correction_done);
+        this.button = (Button) getView().findViewById(R.id.startLocationDone);
         this.button.setOnClickListener(new View.OnClickListener() {
             /**
              * {@inheritDoc}

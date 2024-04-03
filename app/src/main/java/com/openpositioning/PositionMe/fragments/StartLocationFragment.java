@@ -39,6 +39,7 @@ import com.google.android.gms.location.LocationRequest;
 
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.Priority;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Dash;
@@ -332,6 +333,16 @@ public class StartLocationFragment extends Fragment {
                     GPSpathPoints.add(newGPSPoint);
                     gnssPath.setPoints(GPSpathPoints);
 
+                    if (gnssMarker == null) {
+                        gnssMarker = mMap.addMarker(new MarkerOptions()
+                                .position(newGPSPoint)
+                                .visible(true)
+                                .icon(BitmapDescriptorFactory.fromBitmap(getBitmapFromVector(getContext(), R.drawable.ic_baseline_navigation_blue)))
+                                .anchor(0.5f, 0.5f));
+                    } else {
+                        gnssMarker.setPosition(newGPSPoint);
+                    }
+
 
 
                     estimateCoord = particleFilter.particleFilter(newWifiPoint, newGPSPoint, newPdrPoint);
@@ -339,14 +350,9 @@ public class StartLocationFragment extends Fragment {
                     fusionPathPoint.add(newFusionPoint);
                     fusionPath.setPoints(fusionPathPoint);
 
-//                    String altitudeStr = String.format(Locale.getDefault(), "ALT: %.2f m", sensorFusion.getElevation());
-//                    String latitudeStr = String.format(Locale.getDefault(), "LAT: %.5f", newFusionPoint.latitude);
-//                    String longitudeStr = String.format(Locale.getDefault(), "LNT.: %.5f", newFusionPoint.longitude);
-//
-
-                     altitudeStr = String.format(Locale.getDefault(), "ALT: %.2f m", sensorFusion.getElevation());
-                     latitudeStr = String.format(Locale.getDefault(), "LAT: %.5f", newFusionPoint.latitude);
-                     longitudeStr = String.format(Locale.getDefault(), "LNT.: %.5f", newFusionPoint.longitude);
+                    altitudeStr = String.format(Locale.getDefault(), "ALT: %.2f m", sensorFusion.getElevation());
+                    latitudeStr = String.format(Locale.getDefault(), "LAT: %.5f", newFusionPoint.latitude);
+                    longitudeStr = String.format(Locale.getDefault(), "LNT.: %.5f", newFusionPoint.longitude);
 
 
                     if (fusedMarker == null) {
@@ -738,7 +744,7 @@ public class StartLocationFragment extends Fragment {
                 mMap.getUiSettings().setTiltGesturesEnabled(true);
                 mMap.getUiSettings().setRotateGesturesEnabled(true);
                 mMap.getUiSettings().setScrollGesturesEnabled(true);
-                mMap.setMyLocationEnabled(true);
+//                mMap.setMyLocationEnabled(true);
 
                 // Draw Polyline for Each Building
                 initBuilding();
@@ -777,8 +783,6 @@ public class StartLocationFragment extends Fragment {
         switchAutoFloorMap.setOnCheckedChangeListener((buttonView, isChecked) -> {
             isAutoFloorMapEnabled = isChecked;
         });
-
-
 
         // Add button to begin PDR recording and go to recording fragment.
         this.button = (Button) getView().findViewById(R.id.startLocationDone);
@@ -840,15 +844,15 @@ public class StartLocationFragment extends Fragment {
                 }
             });}
 
-        // TODO 这里获取Location的信息
         Button btnGetLocationInfo = view.findViewById(R.id.btnShowLocation);
         if (btnGetLocationInfo != null) {
             btnGetLocationInfo.setOnClickListener(v -> {
                 if (uiFunctions != null) {
-
                     uiFunctions.showLocationInfo(altitudeStr, latitudeStr, longitudeStr);
                 }
             });}
+
+
 
 
         buttonFloorUp.setOnClickListener(v -> nextFloor());
@@ -1016,7 +1020,7 @@ public class StartLocationFragment extends Fragment {
 
     private void initBuilding() {
         // Define a dash pattern for the lines
-        List<PatternItem> pattern = Arrays.asList(new Dash(4), new Gap(2));
+        List<PatternItem> pattern = Arrays.asList(new Dash(6), new Gap(5));
 
         for (Building building : buildings) {
             if (building.isComplexShape()) {
