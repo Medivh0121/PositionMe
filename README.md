@@ -1,32 +1,47 @@
-# PositionMe
-Indoor poistioning data collection application created for the University of Edinburgh's Embedded Wireless course. 
+# Indoor Positioning App
 
-## Requirements
+## Project Aim
+Develop an indoor positioning app in collaboration with Huawei, utilizing sensor fusion technology to integrate Pedestrian Dead Reckoning (PDR), Wi‑Fi, and GPS data with Particle Filter algorithms, enhancing location accuracy within indoor environments.
 
-- Android Studio 4.2 or later
-- Android SDK 30 or later
+## Background
+### High Demand for Indoor Positioning
+With increasing applications in navigation, asset tracking, and personalized services, the demand for reliable indoor positioning systems has never been higher.
 
-## Installation
+### Application Areas
+1. Retail and Shopping Centres
+2. Airports and Transportation Hubs
+3. Hospitals and Healthcare Facilities
 
-1. Clone the repository.
-2. Open the project in Android Studio.
-3. Add your own API key for Google Maps in AndroidManifest.xml
-4. Set the website where you want to send your data. The application was built for use with openpositioning.org.
-5. Build and run the project on your device.
+## Problem Statement
+1. Single Data Source Limitations
+2. Environmental Interference
+3. Scalability and Flexibility Issues
 
-## Usage
+## High Level Application Block Diagram
+![High Level Application Block Diagram](https://github.com/user-attachments/assets/4104eb4d-45c3-45eb-beb7-63be98bc3374)
 
-1. Install the application on a compatible device using Android Studio.
-2. Launch the application on your device.
-3. Allow sensor, location and internet permissions when asked.
-4. Follow the instructions on the screen to start collecting sensor data.
+## User Interface
+![User Interface 1](https://github.com/user-attachments/assets/30c2b405-2ca4-4d28-a107-1043a59caa81)
 
-## Creators
+![User Interface 2](https://github.com/user-attachments/assets/f2653d28-d5dc-4473-bba4-aed903aea650)
 
-### Original contributors ([CloudWalk](https://github.com/openpositioning/DataCollectionTeam6))
-- Virginia Cangelosi (virginia-cangelosi)
-- Michal Dvorak (dvoramicha)
-- Mate Stodulka (stodimp)
+![User Interface 3](https://github.com/user-attachments/assets/1bf2fdee-e4f6-4260-be19-a53a7da47ad7)
 
-### New contributors
-- Francisco Zampella (fzampella-huawei)
+![User Interface 4](https://github.com/user-attachments/assets/0bf50927-6644-448e-9177-9101a97c55f3)
+
+## Fusion Algorithm Comparison
+
+### Particle Filter
+- Particle representation of possible positions
+- Convergence to accurate positioning
+- Dynamic sensor weighting
+
+### Extended Kalman Filter (EKF)
+- Flexibility with Arbitrary Distributions
+- Robustness to Initial State Uncertainty
+- Computational Efficiency
+- Handling Dynamic Environments
+
+### Batch Optimization
+- Computational Efficiency
+- Handling Dynamic Environments
